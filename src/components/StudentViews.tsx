@@ -75,12 +75,27 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
   const [feedbackContent, setFeedbackContent] = useState('');
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
+  // S3 Flagged Uncertain Questions State
+  const [uncertainQuestions, setUncertainQuestions] = useState<{ [qId: string]: boolean }>({});
+
   // S4 (Remediation) Local State
   const [selectedErrorId, setSelectedErrorId] = useState<string | null>(null);
   const [remediationTab, setRemediationTab] = useState<'解析' | '补盲' | '复习记录'>('解析');
 
+  // S5 (Report) View State
+  const [reportTab, setReportTab] = useState<'current' | 'plan'>('current');
+
   // S1 (Student Home) & S6 (My Plans) Local Filters
   const [myPlanFilter, setMyPlanFilter] = useState<'all' | 'active' | 'completed' | 'overdue'>('all');
+
+  // In-app Toast notifications
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'warning' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'info' | 'warning' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3500);
+  };
 
   const activePlan = plans.find(p => p.id === activePlanId);
   const activePhase = activePlan?.phases.find(ph => ph.id === activePhaseId);
@@ -98,6 +113,8 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
         }
         return p;
       }));
+      const joinedPlan = plans.find(p => p.id === planId);
+      showToast(`您已成功激活并加入大纲计划 《${joinedPlan?.name || '新复习大纲'}》！`, 'success');
     }
     setActivePlanId(planId);
     setView('S2');
@@ -114,6 +131,7 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
       stage,
       examGoal
     }));
+    showToast(`统考大纲及自测题库已精准切换至 “${stage}” 对应考纲！`, 'info');
   };
 
   // Get active test questions for Phase
@@ -272,7 +290,7 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
     onAddFeedback(q.id, q.stem, feedbackType, feedbackContent);
     setFeedbackContent('');
     setShowFeedbackModal(false);
-    alert('题目反馈提交成功！管理员将尽快核实。');
+    showToast('📣 纠错反馈提交成功！该题已精准归档并推送至教务后台核实。', 'success');
   };
 
   const isPhaseQuiz = () => {
@@ -294,7 +312,14 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
   const myPlansList = plans.filter(p => student.joinedPlanIds.includes(p.id));
 
   return (
-    <div className="p-4 max-w-4xl mx-auto space-y-6">
+    <div className="p-4 max-w-4xl mx-auto space-y-6 relative">
+      {/* Absolute Toast alert overlay */}
+      {toast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] bg-[#1e0000] border-2 border-brand-gold text-white px-5 py-3 rounded-lg shadow-xl flex items-center gap-2 text-xs font-black animate-pulse max-w-md text-center">
+          <Sparkles className="w-4 h-4 text-brand-gold fill-brand-gold shrink-0" />
+          <span>{toast.message}</span>
+        </div>
+      )}
       {/* 1. Header Navigation Bar (Includes Profile) */}
       <div className="bg-white border border-brand-borderred/40 rounded-lg p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm relative overflow-hidden">
         {/* Subtle decorative Peking Red border top accent */}
@@ -336,6 +361,28 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
       {/* 2. S1 (Student Home View) */}
       {currentView === 'S1' && (
         <div className="space-y-6">
+          {/* State-driven Enrollment Banner */}
+          {myPlansList.length === 0 ? (
+            <div className="bg-amber-50 border-l-4 border-brand-gold p-4.5 rounded-r-lg text-2xs space-y-1 shadow-2xs border-y border-r border-brand-gold/10">
+              <h4 className="font-black text-[#805300] flex items-center gap-1.5">
+                <AlertCircle className="w-4.5 h-4.5 text-brand-gold shrink-0 fill-brand-gold/10" />
+                【学情状态：未加入任何统考学习大纲计划】
+              </h4>
+              <p className="text-gray-600 font-semibold leading-relaxed">
+                您尚未激活任何医学统考复习大纲计划。大纲精准匹配系统已在下方为您筛选出最匹配的备考路径。请勾选并「加入计划」，即可激活您的专属日常阶段自测、模拟考试卷与 AI 错题智能补盲加练功能。
+              </p>
+            </div>
+          ) : (
+            <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4.5 rounded-r-lg text-2xs space-y-1 shadow-2xs border-y border-r border-emerald-500/10">
+              <h4 className="font-black text-emerald-800 flex items-center gap-1.5">
+                <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0 fill-emerald-50" />
+                【学情状态：已加入复习计划，大纲备考推进中】
+              </h4>
+              <p className="text-gray-600 font-semibold leading-relaxed">
+                系统已成功为您建立每日备考大纲跟踪。您当前的首要任务是推进下方的阶段。AI 定向错题补盲包已随您答题的薄弱点实时在 S4 界面生成，保障您在大纲统考中闭环达标。
+              </p>
+            </div>
+          )}
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div 
@@ -369,8 +416,12 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
 
             <div 
               onClick={() => {
-                if (testAttempts.length > 0) setView('S5');
-                else alert('暂无测验报告，请先加入计划参加测验。');
+                if (testAttempts.length > 0) {
+                  setReportTab('current');
+                  setView('S5');
+                } else {
+                  showToast('暂无测验报告，请先加入任一统考计划并完成首次自测练习！', 'warning');
+                }
               }}
               className="bg-white border border-gray-200 p-5 rounded-lg cursor-pointer hover:border-brand-green hover:shadow-md transition-all relative overflow-hidden group"
             >
@@ -556,6 +607,27 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
             </div>
           </div>
 
+          {/* Prominent unjoined warning inside S2 */}
+          {!student.joinedPlanIds.includes(activePlan.id) && (
+            <div className="bg-amber-50 border-l-4 border-brand-gold p-4.5 rounded-r-lg text-2xs space-y-2 shadow-2xs border-y border-r border-brand-gold/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <h4 className="font-black text-[#805300] flex items-center gap-1.5">
+                  <AlertCircle className="w-4.5 h-4.5 text-brand-gold shrink-0 fill-brand-gold/10" />
+                  【教务提示：您尚未激活加入本考试大纲学习计划】
+                </h4>
+                <p className="text-gray-500 font-semibold leading-relaxed">
+                  加入后系统将为您即时开启大纲通关进度、解锁日常练习和模拟测验、以及 AI 错题智能补盲包。
+                </p>
+              </div>
+              <button
+                onClick={() => handleJoinPlan(activePlan.id)}
+                className="px-4 py-2 bg-brand-red hover:bg-[#590000] text-white rounded text-2xs font-black shadow-md flex items-center gap-1 cursor-pointer transition-colors shrink-0"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-brand-gold fill-brand-gold" /> 立即激活加入
+              </button>
+            </div>
+          )}
+
           {/* Remediation rule prompt */}
           <div className="p-4 bg-brand-lightred/40 border border-brand-borderred/40 rounded-lg text-2xs text-brand-darkred space-y-1">
             <p className="font-bold flex items-center gap-1"><Sparkles className="w-3.5 h-3.5 text-brand-gold fill-brand-gold" /> 教务智能补盲与过关标准：</p>
@@ -635,7 +707,7 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                           onClick={() => handleStartPhase(activePlan.id, phase.id)}
                           className="px-4 py-1.5 bg-brand-red hover:bg-brand-darkred text-white rounded text-xs font-bold flex items-center gap-1 shadow-xs transition-all cursor-pointer"
                         >
-                          开始答题 <ChevronRight className="w-3.5 h-3.5" />
+                          {phase.type === 'practice' ? '开始日常阶段练习' : '进入教研模拟测验'} <ChevronRight className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>
@@ -808,8 +880,58 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                   </div>
                 )}
 
+                {/* Error Cause Classification (Practice Mode Only, on mistake) */}
+                {!isExamMode && isPracticeAnswerChecked && selectedPracticeAnswer !== question.answer && (
+                  <div className="bg-rose-50/50 p-3.5 rounded-lg border border-rose-200 space-y-2">
+                    <p className="text-3xs font-extrabold text-rose-800 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 text-rose-700" />
+                      教研核实：请自主选择此题回答错误的【错因归因】
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {['审题不细', '概念模糊', '知识遗忘', '解题粗心'].map(cause => (
+                        <button
+                          key={cause}
+                          onClick={() => showToast(`已将错因 【${cause}】 精准归档至该大纲考点的薄弱点分析仓！`, 'info')}
+                          className="px-2.5 py-1 bg-white hover:bg-rose-100 border border-rose-200 rounded text-3xs text-rose-700 font-extrabold cursor-pointer transition-colors"
+                        >
+                          {cause}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Uncertain Bookmark & Draft Progress Bar */}
+                <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200 text-3xs text-gray-500 gap-3">
+                  <button
+                    onClick={() => {
+                      const flagged = !uncertainQuestions[question.id];
+                      setUncertainQuestions(prev => ({ ...prev, [question.id]: flagged }));
+                      showToast(flagged ? '📌 已成功将此题标记为【不确定试题】，便于考后精准复习！' : '📌 已取消本题的不确定标记', 'info');
+                    }}
+                    className={`px-3 py-1.5 rounded border font-black flex items-center gap-1.5 transition-colors cursor-pointer text-3xs ${
+                      uncertainQuestions[question.id]
+                        ? 'bg-amber-100 border-brand-gold text-brand-gold font-bold ring-1 ring-brand-gold/30'
+                        : 'bg-white border-gray-300 hover:bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    <Bookmark className={`w-3.5 h-3.5 ${uncertainQuestions[question.id] ? 'fill-brand-gold text-brand-gold' : 'text-gray-400'}`} />
+                    {uncertainQuestions[question.id] ? '已标记不确定' : '标记为不确定'}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      showToast('💾 当前大纲作答进度已实时本地暂存，您可以随时安全退出或继续答题。', 'success');
+                    }}
+                    className="px-3 py-1.5 bg-white hover:bg-gray-100 border border-gray-300 rounded font-black text-gray-700 flex items-center gap-1.5 cursor-pointer transition-colors text-3xs"
+                  >
+                    <Clock className="w-3.5 h-3.5 text-gray-500" />
+                    暂存作答草稿
+                  </button>
+                </div>
+
                 {/* Question Action Controls */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pt-1">
                   <div className="flex gap-2">
                     <button 
                       onClick={() => setShowFeedbackModal(true)}
@@ -1000,6 +1122,67 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                         </p>
                       </div>
 
+                      {/* Interactive 5-stage horizontal timeline for packet lifecycle */}
+                      <div className="bg-gray-50/70 border border-gray-100 p-3 rounded-lg flex items-center justify-between gap-1 max-w-xl mx-auto my-3 text-[10px]">
+                        {/* Stage 1: 已生成 */}
+                        <div className="flex flex-col items-center shrink-0">
+                          <div className="w-4.5 h-4.5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px] font-black">✓</div>
+                          <span className="text-[9px] font-bold text-emerald-800 mt-1">已生成</span>
+                        </div>
+                        <div className="flex-1 h-0.5 bg-emerald-500 min-w-[10px]" />
+
+                        {/* Stage 2: 未开始 */}
+                        <div className="flex flex-col items-center shrink-0">
+                          <div className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[8px] font-black ${
+                            packet.status === 'not_started' ? 'bg-amber-500 text-white animate-pulse' : 'bg-emerald-500 text-white'
+                          }`}>
+                            {packet.status === 'not_started' ? '●' : '✓'}
+                          </div>
+                          <span className={`text-[9px] font-bold mt-1 ${packet.status === 'not_started' ? 'text-amber-700 font-extrabold' : 'text-emerald-800'}`}>未开始</span>
+                        </div>
+                        <div className={`flex-1 h-0.5 min-w-[10px] ${packet.status === 'not_started' ? 'bg-gray-200' : 'bg-emerald-500'}`} />
+
+                        {/* Stage 3: 进行中 */}
+                        <div className="flex flex-col items-center shrink-0">
+                          <div className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[8px] font-black ${
+                            packet.status === 'not_started' ? 'bg-gray-200 text-gray-400' :
+                            packet.status === 'studying' ? 'bg-brand-red text-white animate-pulse' : 'bg-emerald-500 text-white'
+                          }`}>
+                            {packet.status === 'not_started' ? '3' : packet.status === 'studying' ? '●' : '✓'}
+                          </div>
+                          <span className={`text-[9px] font-bold mt-1 ${
+                            packet.status === 'not_started' ? 'text-gray-400' :
+                            packet.status === 'studying' ? 'text-brand-red font-extrabold' : 'text-emerald-800'
+                          }`}>进行中</span>
+                        </div>
+                        <div className={`flex-1 h-0.5 min-w-[10px] ${packet.status === 'retested' ? 'bg-emerald-500' : 'bg-gray-200'}`} />
+
+                        {/* Stage 4: 已完成 */}
+                        <div className="flex flex-col items-center shrink-0">
+                          <div className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[8px] font-black ${
+                            packet.status === 'retested' ? 'bg-emerald-500 text-white' :
+                            packet.status === 'studying' ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-400'
+                          }`}>
+                            {packet.status === 'retested' ? '✓' : packet.status === 'studying' ? '●' : '4'}
+                          </div>
+                          <span className={`text-[9px] font-bold mt-1 ${
+                            packet.status === 'retested' ? 'text-emerald-800' :
+                            packet.status === 'studying' ? 'text-amber-700 font-extrabold' : 'text-gray-400'
+                          }`}>已完成</span>
+                        </div>
+                        <div className={`flex-1 h-0.5 min-w-[10px] ${packet.status === 'retested' ? 'bg-emerald-500' : 'bg-gray-200'}`} />
+
+                        {/* Stage 5: 复测完成 */}
+                        <div className="flex flex-col items-center shrink-0">
+                          <div className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[8px] font-black ${
+                            packet.status === 'retested' ? 'bg-emerald-500 text-white font-black' : 'bg-gray-200 text-gray-400'
+                          }`}>
+                            {packet.status === 'retested' ? '✓' : '5'}
+                          </div>
+                          <span className={`text-[9px] font-bold mt-1 ${packet.status === 'retested' ? 'text-emerald-800 font-extrabold' : 'text-gray-400'}`}>复测完成</span>
+                        </div>
+                      </div>
+
                       <div className="flex items-center justify-between pt-2.5 border-t border-gray-100">
                         <span className="text-3xs text-gray-500 font-medium">包含系统适配：{packet.questions.length} 道仿真医学测试题</span>
                         
@@ -1124,46 +1307,41 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                             </div>
 
                             <div className="space-y-2">
-                              <p className="font-extrabold text-gray-800">精选名师关联多媒体视频与图文：</p>
-                              <div className="flex gap-3">
-                                <a href="#video-mock" onClick={(e) => { e.preventDefault(); alert('正在准备大纲精讲：教研特级讲师《微格肺炎病理生理鉴别法（大叶、小叶与间质肺炎）》（12分钟）'); }} className="p-3 border border-brand-borderred/20 rounded text-center block flex-1 bg-brand-lightred/20 hover:bg-brand-lightred/40 transition-colors">
-                                  <span className="block text-2xl mb-1">🎬</span>
-                                  <span className="text-3xs font-extrabold text-brand-darkred block">微课精讲视频</span>
-                                </a>
-                                <a href="#text-mock" onClick={(e) => { e.preventDefault(); alert('图文大纲速记卡：《二十四字诀秒杀呼吸系统炎症考点》已为你保存在书签'); }} className="p-3 border border-brand-borderred/20 rounded text-center block flex-1 bg-brand-lightred/20 hover:bg-brand-lightred/40 transition-colors">
-                                  <span className="block text-2xl mb-1">📝</span>
-                                  <span className="text-3xs font-extrabold text-brand-darkred block">考点速记脑图</span>
-                                </a>
+                              <p className="font-extrabold text-brand-darkred">🎥 考点配套智能微课讲解：</p>
+                              <div className="bg-gray-100 rounded-lg p-4 flex items-center justify-between border border-gray-200">
+                                <div className="space-y-1">
+                                  <p className="font-bold text-xs text-gray-800">【微课】第九版教材考点精细讲解 —— {selectedQ.knowledgePoint}</p>
+                                  <p className="text-3xs text-gray-400">主讲：北京大学医学部教研专家组 · 时长: 8分钟 · 100%匹配大纲</p>
+                                </div>
+                                <button 
+                                  onClick={() => showToast('配套微课视频已成功加载，您可以开始沉浸式学习！', 'success')}
+                                  className="px-3 py-1 bg-brand-red hover:bg-brand-darkred text-white text-3xs font-black rounded cursor-pointer"
+                                >
+                                  播放微课
+                                </button>
                               </div>
-                            </div>
-
-                            <div className="pt-2">
-                              <button 
-                                onClick={() => {
-                                  alert(`正在匹配题库...已为你提取针对【${selectedQ.knowledgePoint}】考点的 3 道历年名校统考真题。即刻进入日常练习模式进行答题验证！`);
-                                  handleStartPhase('plan_01', 'p2');
-                                }}
-                                className="w-full py-2.5 bg-brand-red hover:bg-brand-darkred text-white rounded font-bold text-2xs flex items-center justify-center gap-1 cursor-pointer shadow-xs transition-colors"
-                              >
-                                立即开始相似真题加练自测
-                              </button>
                             </div>
                           </div>
                         )}
 
                         {remediationTab === '复习记录' && (
-                          <div className="space-y-4 text-xs text-gray-500">
-                            <p className="font-extrabold text-gray-800">此考点在你的学习路径中的流转历程：</p>
-                            <div className="space-y-3.5 pl-4 border-l-2 border-brand-borderred/20">
+                          <div className="space-y-4 text-xs">
+                            <p className="font-extrabold text-brand-darkred">📅 针对该知识点的大纲复习学情轨迹：</p>
+                            <div className="space-y-3.5 relative pl-4 border-l border-brand-borderred/20">
                               <div className="relative">
-                                <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-brand-red ring-4 ring-brand-lightred" />
-                                <p className="text-3xs font-extrabold text-brand-darkred">今日测验错题生成 09:30</p>
-                                <p className="text-3xs text-gray-500 mt-0.5">在 阶段一 模拟测验中做错该题，教务系统智能归纳其属于弱项考点，自动触发了相似题 AI 加练包。</p>
+                                <div className="absolute -left-6 top-1 w-3 h-3 rounded-full bg-brand-red" />
+                                <p className="font-bold text-gray-800">首次做错：触发教研大纲漏洞预警</p>
+                                <p className="text-3xs text-gray-400">2026-07-01 10:14 · 在《心肺系统大纲辅导阶段自测》中答错该考点</p>
                               </div>
                               <div className="relative">
-                                <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-brand-gold ring-4 ring-amber-50" />
-                                <p className="text-3xs font-extrabold text-brand-gold">今日激活微课学习 10:15</p>
-                                <p className="text-3xs text-gray-400 mt-0.5">阅读并学习了针对 {selectedQ.knowledgePoint} 考点的大纲解析，顺利进行了图文卡速读。</p>
+                                <div className="absolute -left-6 top-1 w-3 h-3 rounded-full bg-brand-gold" />
+                                <p className="font-bold text-[#805300]">自动生成补盲加练包：教务同步下发</p>
+                                <p className="text-3xs text-gray-400">2026-07-01 10:15 · 系统已自动派发相似考点加练仿真题与视频微课</p>
+                              </div>
+                              <div className="relative">
+                                <div className="absolute -left-6 top-1 w-3 h-3 rounded-full bg-gray-300" />
+                                <p className="font-bold text-gray-400">进行中：待阅读微课讲解并进行仿真复测</p>
+                                <p className="text-3xs text-gray-400">暂未开始复测 · 建议在 24 小时内攻克以巩固长期记忆</p>
                               </div>
                             </div>
                           </div>
@@ -1194,130 +1372,235 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
             </button>
           </div>
 
-          {/* Core Score card */}
-          {(() => {
-            const attempt = testAttempts[0] || {
-              score: 80,
-              correctCount: 4,
-              totalQuestions: 5,
-              weakPoints: ['药理学 - 糖皮质激素抗炎机制'],
-              completedAt: '今日'
-            };
+          {/* S5 Report Mode Selector */}
+          <div className="flex gap-2 border-b border-gray-100 pb-2">
+            <button
+              onClick={() => setReportTab('current')}
+              className={`text-2xs px-3.5 py-1.5 rounded-md border font-extrabold transition-all cursor-pointer ${
+                reportTab === 'current' 
+                  ? 'bg-brand-lightred text-brand-red border-brand-borderred/40 shadow-2xs font-black' 
+                  : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              本次自测报告
+            </button>
+            <button
+              onClick={() => setReportTab('plan')}
+              className={`text-2xs px-3.5 py-1.5 rounded-md border font-extrabold transition-all cursor-pointer ${
+                reportTab === 'plan' 
+                  ? 'bg-brand-lightred text-brand-red border-brand-borderred/40 shadow-2xs font-black' 
+                  : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              计划大纲学习报告 (全周期)
+            </button>
+          </div>
 
-            const passed = attempt.score >= 80;
+          {reportTab === 'current' ? (
+            /* Current Test Assessment Report */
+            (() => {
+              const attempt = testAttempts[0] || {
+                score: 80,
+                correctCount: 4,
+                totalQuestions: 5,
+                weakPoints: ['药理学 - 糖皮质激素抗炎机制'],
+                completedAt: '今日'
+              };
 
-            return (
-              <div className="space-y-6">
-                {/* Peking Red gradient backdrop card */}
-                <div className="bg-gradient-to-br from-brand-darkred to-[#4d0000] border-2 border-brand-gold/30 text-white rounded-lg p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md relative overflow-hidden">
-                  <div className="absolute right-0 bottom-0 opacity-10 text-9xl font-serif select-none pointer-events-none text-brand-gold">
-                    医
+              const passed = attempt.score >= 80;
+
+              return (
+                <div className="space-y-6 animate-fadeIn">
+                  {/* Peking Red gradient backdrop card */}
+                  <div className="bg-gradient-to-br from-brand-darkred to-[#4d0000] border-2 border-brand-gold/30 text-white rounded-lg p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md relative overflow-hidden">
+                    <div className="absolute right-0 bottom-0 opacity-10 text-9xl font-serif select-none pointer-events-none text-brand-gold">
+                      医
+                    </div>
+                    
+                    <div className="space-y-3.5 text-center md:text-left z-10">
+                      <span className="px-2.5 py-0.5 bg-brand-gold/20 text-brand-gold border border-brand-gold/30 rounded text-3xs font-extrabold uppercase tracking-widest">
+                        医学大纲测试评估已生成
+                      </span>
+                      <h3 className="text-xs text-brand-lightred font-bold">
+                        诊断报告时间：{attempt.completedAt} · 本次作答
+                      </h3>
+                      <p className="text-xs font-semibold text-white/90">
+                        大纲考核达标门槛：80分 · 本次正确率：<span className="text-brand-gold font-extrabold">{attempt.score}%</span>（答对 {attempt.correctCount} / {attempt.totalQuestions} 题）
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col items-center bg-[#2e0000] p-4 rounded-lg border border-brand-gold/20 shrink-0 shadow-inner z-10">
+                      <div className="text-5xl font-black text-brand-gold font-mono">{attempt.score}<span className="text-sm font-bold text-white/60 ml-0.5">分</span></div>
+                      <span className={`text-3xs px-2.5 py-0.5 rounded mt-2.5 font-black border uppercase tracking-wider ${
+                        passed ? 'bg-emerald-950/50 text-emerald-400 border-emerald-500/30' : 'bg-rose-950/50 text-rose-400 border-rose-500/30'
+                      }`}>
+                        {passed ? '考核已达标 ✓' : '触发自动补盲 ✗'}
+                      </span>
+                    </div>
                   </div>
-                  
-                  <div className="space-y-3.5 text-center md:text-left z-10">
-                    <span className="px-2.5 py-0.5 bg-brand-gold/20 text-brand-gold border border-brand-gold/30 rounded text-3xs font-extrabold uppercase tracking-widest">
-                      医学大纲测试评估已生成
-                    </span>
-                    <h3 className="text-xs text-brand-lightred font-bold">
-                      诊断报告时间：{attempt.completedAt} · 本次统作答
-                    </h3>
-                    <p className="text-xs font-semibold text-white/90">
-                      大纲考核达标门槛：80分 · 本次正确率：<span className="text-brand-gold font-extrabold">{attempt.score}%</span>（答对 {attempt.correctCount} / {attempt.totalQuestions} 题）
-                    </p>
-                  </div>
 
-                  <div className="flex flex-col items-center bg-[#2e0000] p-4 rounded-lg border border-brand-gold/20 shrink-0 shadow-inner z-10">
-                    <div className="text-5xl font-black text-brand-gold font-mono">{attempt.score}<span className="text-sm font-bold text-white/60 ml-0.5">分</span></div>
-                    <span className={`text-3xs px-2.5 py-0.5 rounded mt-2.5 font-black border uppercase tracking-wider ${
-                      passed ? 'bg-emerald-950/50 text-emerald-400 border-emerald-500/30' : 'bg-rose-950/50 text-rose-400 border-rose-500/30'
-                    }`}>
-                      {passed ? '考核已达标 ✓' : '触发自动补盲 ✗'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Weakness breakdown */}
-                <div className="bg-white border border-brand-borderred/30 rounded-lg p-5 space-y-4 shadow-xs relative">
-                  <h4 className="text-xs font-black text-brand-darkred border-b border-gray-100 pb-2.5">
-                    大纲考点漏洞扫描
-                  </h4>
-                  
-                  {attempt.weakPoints.length === 0 ? (
-                    <p className="text-xs text-emerald-700 font-extrabold flex items-center gap-1 bg-emerald-50 p-4 border border-emerald-100 rounded-lg">
-                      <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0" /> 完美通过！本次测验所有考察的医学大纲知识考点已完全掌握。
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      <p className="text-3xs text-gray-500 font-bold">检测到以下重点知识考点出现错误，不符合大纲基准正确率门槛：</p>
-                      
+                  {/* Weakness breakdown */}
+                  <div className="bg-white border border-brand-borderred/30 rounded-lg p-5 space-y-4 shadow-xs relative">
+                    <h4 className="text-xs font-black text-brand-darkred border-b border-gray-100 pb-2.5">
+                      大纲考点漏洞扫描
+                    </h4>
+                    
+                    {attempt.weakPoints.length === 0 ? (
+                      <p className="text-xs text-emerald-700 font-extrabold flex items-center gap-1 bg-emerald-50 p-4 border border-emerald-100 rounded-lg">
+                        <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0" /> 完美通过！本次测验所有考察的医学大纲知识考点已完全掌握。
+                      </p>
+                    ) : (
                       <div className="space-y-3">
-                        {attempt.weakPoints.map(wp => (
-                          <div key={wp} className="p-3.5 bg-brand-lightred/30 border-l-4 border-brand-red border-y border-r border-brand-borderred/20 rounded-r-lg flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-                            <div className="space-y-1">
-                              <p className="font-extrabold text-brand-darkred flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-brand-red" /> {wp}
-                              </p>
-                              <p className="text-3xs text-gray-500 font-semibold">建议立即通过错题中心的“视频微课+名师精炼”辅导包进行专项攻克。</p>
-                            </div>
+                        <p className="text-3xs text-gray-500 font-bold">检测到以下重点知识考点出现错误，不符合大纲基准正确率门槛：</p>
+                        
+                        <div className="space-y-3">
+                          {attempt.weakPoints.map(wp => (
+                            <div key={wp} className="p-3.5 bg-brand-lightred/30 border-l-4 border-brand-red border-y border-r border-brand-borderred/20 rounded-r-lg flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+                              <div className="space-y-1">
+                                <p className="font-extrabold text-brand-darkred flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-brand-red" /> {wp}
+                                </p>
+                                <p className="text-3xs text-gray-500 font-semibold">建议立即通过错题中心的“视频微课+名师精炼”辅导包进行专项攻克。</p>
+                              </div>
 
-                            <button 
-                              onClick={() => { setSelectedErrorId('q4'); setView('S4'); }}
-                              className="px-3 py-1.5 bg-white border border-brand-borderred/30 hover:bg-brand-lightred text-brand-red rounded text-3xs font-extrabold self-start md:self-auto transition-colors cursor-pointer shadow-2xs"
-                            >
-                              立即进行专项多维补盲
-                            </button>
-                          </div>
-                        ))}
+                              <button 
+                                onClick={() => { setSelectedErrorId('q4'); setView('S4'); }}
+                                className="px-3 py-1.5 bg-white border border-brand-borderred/30 hover:bg-brand-lightred text-brand-red rounded text-3xs font-extrabold self-start md:self-auto transition-colors cursor-pointer shadow-2xs"
+                              >
+                                立即进行专项多维补盲
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Simulated Chart Metrics */}
+                  <div className="bg-white border border-brand-borderred/30 rounded-lg p-5 space-y-4 shadow-xs">
+                    <h4 className="text-xs font-black text-brand-darkred">教务大纲雷达维度诊断</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                      <div className="p-3 bg-gray-50 rounded border border-gray-100">
+                        <p className="text-3xs text-gray-400 font-bold uppercase">心血管系统</p>
+                        <p className="text-xs font-extrabold text-gray-800 mt-1 font-mono">100%</p>
+                        <span className="text-3xs text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-extrabold border border-emerald-100 mt-1.5 inline-block">掌握牢固</span>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded border border-gray-100">
+                        <p className="text-3xs text-gray-400 font-bold uppercase">呼吸系统</p>
+                        <p className="text-xs font-extrabold text-gray-800 mt-1 font-mono">100%</p>
+                        <span className="text-3xs text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-extrabold border border-emerald-100 mt-1.5 inline-block">掌握牢固</span>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded border border-gray-100">
+                        <p className="text-3xs text-gray-400 font-bold uppercase">病理学基础</p>
+                        <p className="text-xs font-extrabold text-gray-800 mt-1 font-mono">80%</p>
+                        <span className="text-3xs text-brand-red bg-brand-lightred px-1.5 py-0.2 rounded font-extrabold border border-brand-borderred/20 mt-1.5 inline-block">大纲通过</span>
+                      </div>
+                      <div className="p-3 bg-[#fffbf0] rounded border border-brand-gold/10">
+                        <p className="text-3xs text-brand-gold font-bold uppercase">临床药理</p>
+                        <p className="text-xs font-extrabold text-[#4d3300] mt-1 font-mono">40%</p>
+                        <span className="text-3xs text-[#b30000] bg-rose-50 px-1.5 py-0.2 rounded font-extrabold border border-red-100 mt-1.5 inline-block">亟需补盲</span>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                {/* Simulated Chart Metrics */}
-                <div className="bg-white border border-brand-borderred/30 rounded-lg p-5 space-y-4 shadow-xs">
-                  <h4 className="text-xs font-black text-brand-darkred">教务大纲雷达维度诊断</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                    <div className="p-3 bg-gray-50 rounded border border-gray-100">
-                      <p className="text-3xs text-gray-400 font-bold uppercase">心血管系统</p>
-                      <p className="text-xs font-extrabold text-gray-800 mt-1 font-mono">100%</p>
-                      <span className="text-3xs text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-extrabold border border-emerald-100 mt-1.5 inline-block">掌握牢固</span>
+                  {/* Bottom Actions */}
+                  <div className="flex gap-3 justify-end border-t border-gray-100 pt-4">
+                    <button 
+                      onClick={() => setView('S2')}
+                      className="px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded text-xs font-bold cursor-pointer"
+                    >
+                      返回计划列表
+                    </button>
+                    <button 
+                      onClick={() => setView('S4')}
+                      className="px-4 py-2 bg-brand-red hover:bg-brand-darkred text-white rounded text-xs font-black shadow-xs cursor-pointer transition-colors"
+                    >
+                      前往错题与补盲中心
+                    </button>
+                  </div>
+                </div>
+              );
+            })()
+          ) : (
+            /* Plan Overall Study Report */
+            <div className="bg-white border border-brand-borderred/30 rounded-lg p-5 space-y-6 shadow-xs relative animate-fadeIn">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                <h4 className="text-xs font-black text-brand-darkred">全周期大纲学习轨迹概览</h4>
+                <span className="text-3xs text-brand-gold bg-amber-50 px-2.5 py-0.5 rounded border border-brand-gold/20 font-extrabold">大纲覆盖率 88%</span>
+              </div>
+
+              {/* Summary Stats Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-brand-lightred/20 p-4 rounded-lg border border-brand-borderred/10 text-center space-y-1">
+                  <p className="text-[10px] text-gray-400 font-extrabold">累计平均掌握率</p>
+                  <p className="text-2xl font-black text-brand-red font-mono">82%</p>
+                  <p className="text-[9px] text-emerald-700 font-bold flex items-center justify-center gap-0.5">超全国平均 12.4%</p>
+                </div>
+                <div className="bg-amber-50/40 p-4 rounded-lg border border-brand-gold/15 text-center space-y-1">
+                  <p className="text-[10px] text-gray-400 font-extrabold">大纲覆盖量</p>
+                  <p className="text-2xl font-black text-brand-gold font-mono">35 <span className="text-2xs font-bold text-gray-500">道</span></p>
+                  <p className="text-[9px] text-gray-500">已自测涵盖 4 个章节</p>
+                </div>
+                <div className="bg-emerald-50/30 p-4 rounded-lg border border-emerald-100 text-center space-y-1">
+                  <p className="text-[10px] text-gray-400 font-extrabold">错题定向消除率</p>
+                  <p className="text-2xl font-black text-emerald-700 font-mono">100%</p>
+                  <p className="text-[9px] text-emerald-600 font-extrabold">3 个重度漏洞已被彻底补盲</p>
+                </div>
+              </div>
+
+              {/* Learning progress fluctuations timeline */}
+              <div className="space-y-3.5">
+                <h5 className="text-3xs text-gray-400 font-bold uppercase tracking-wider">【各个备考大纲阶段成绩趋势波动】</h5>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-2xs font-semibold text-gray-700">
+                      <span>阶段一：临床诊断大纲自测 (日常日常阶段练习)</span>
+                      <span className="text-brand-red font-bold font-mono">80分 (已达标)</span>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded border border-gray-100">
-                      <p className="text-3xs text-gray-400 font-bold uppercase">呼吸系统</p>
-                      <p className="text-xs font-extrabold text-gray-800 mt-1 font-mono">100%</p>
-                      <span className="text-3xs text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-extrabold border border-emerald-100 mt-1.5 inline-block">掌握牢固</span>
+                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                      <div className="bg-brand-red h-full" style={{ width: '80%' }} />
                     </div>
-                    <div className="p-3 bg-gray-50 rounded border border-gray-100">
-                      <p className="text-3xs text-gray-400 font-bold uppercase">病理学基础</p>
-                      <p className="text-xs font-extrabold text-gray-800 mt-1 font-mono">80%</p>
-                      <span className="text-3xs text-brand-red bg-brand-lightred px-1.5 py-0.2 rounded font-extrabold border border-brand-borderred/20 mt-1.5 inline-block">大纲通过</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-2xs font-semibold text-gray-700">
+                      <span>阶段二：心肺呼吸考纲自测 (教研模拟测验)</span>
+                      <span className="text-brand-gold font-bold font-mono">90分 (优秀)</span>
                     </div>
-                    <div className="p-3 bg-[#fffbf0] rounded border border-brand-gold/10">
-                      <p className="text-3xs text-brand-gold font-bold uppercase">临床药理</p>
-                      <p className="text-xs font-extrabold text-[#4d3300] mt-1 font-mono">40%</p>
-                      <span className="text-3xs text-[#b30000] bg-rose-50 px-1.5 py-0.2 rounded font-extrabold border border-red-100 mt-1.5 inline-block">亟需补盲</span>
+                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                      <div className="bg-brand-gold h-full" style={{ width: '90%' }} />
                     </div>
                   </div>
                 </div>
-
-                {/* Bottom Actions */}
-                <div className="flex gap-3 justify-end border-t border-gray-100 pt-4">
-                  <button 
-                    onClick={() => setView('S2')}
-                    className="px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded text-xs font-bold cursor-pointer"
-                  >
-                    返回计划列表
-                  </button>
-                  <button 
-                    onClick={() => setView('S4')}
-                    className="px-4 py-2 bg-brand-red hover:bg-brand-darkred text-white rounded text-xs font-black shadow-xs cursor-pointer transition-colors"
-                  >
-                    前往错题与补盲中心
-                  </button>
-                </div>
               </div>
-            );
-          })()}
+
+              {/* AI intelligent remediation advice */}
+              <div className="p-4 bg-brand-lightred/20 border border-brand-borderred/20 rounded-lg text-2xs space-y-1.5">
+                <p className="font-extrabold text-brand-darkred flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-brand-gold fill-brand-gold animate-pulse" />
+                  AI 智能全周期大纲诊断建议 (教研同步)：
+                </p>
+                <p className="text-gray-600 font-semibold leading-relaxed">
+                  基于您在本大纲计划内的多轮答卷足迹，您的「心血管系统」、「呼吸系统」章节掌握极佳，正确率均达标 100%。唯独「临床药理学」下「糖皮质激素的抗炎机制」因审题不细、概念模糊出现错误，已被系统智能生成专项加练包。请点击下方的错题补盲中心，查看您的专属补盲卡片与复测题。
+                </p>
+              </div>
+
+              {/* Bottom Actions for Study Report */}
+              <div className="flex gap-3 justify-end border-t border-gray-100 pt-4">
+                <button 
+                  onClick={() => setView('S2')}
+                  className="px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded text-xs font-bold cursor-pointer"
+                >
+                  返回教学大纲
+                </button>
+                <button 
+                  onClick={() => setView('S4')}
+                  className="px-4 py-2 bg-brand-red hover:bg-brand-darkred text-white rounded text-xs font-black shadow-xs cursor-pointer transition-colors"
+                >
+                  前往错题与补盲中心
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1419,36 +1702,120 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
             );
           })()}
 
-          {/* Historical Logs summary */}
-          <div className="border border-brand-borderred/30 rounded-lg p-4 bg-gradient-to-br from-gray-50 to-brand-lightred/10 space-y-3 shadow-2xs">
-            <h4 className="text-xs font-black text-brand-darkred flex items-center gap-1.5">
-              <BookOpen className="w-4 h-4 text-brand-red" />
-              历次模拟考测试 & 日常练习沉淀档案
-            </h4>
-            
-            {testAttempts.length === 0 ? (
-              <p className="text-3xs text-gray-400 font-medium">暂无历史答题提交数据。</p>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {testAttempts.map(att => {
-                  const plan = plans.find(p => p.id === att.planId);
-                  return (
-                    <div key={att.id} className="py-3 flex items-center justify-between text-2xs gap-4">
-                      <div className="space-y-0.5">
-                        <p className="font-extrabold text-brand-darkred">{plan?.name || '心肺系统大纲辅导计划'}</p>
-                        <p className="text-3xs text-gray-400">
-                          类型：{att.type === 'quiz' ? '综合模拟测验' : '核心大纲自测练习'} · 提交时间：{att.completedAt}
+          {/* Historical Logs and records grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 1. 历史测验记录 */}
+            <div className="border border-brand-borderred/30 rounded-lg p-4 bg-white space-y-3.5 shadow-2xs">
+              <h4 className="text-xs font-black text-brand-darkred flex items-center gap-1.5 pb-2 border-b border-gray-100">
+                <BookOpen className="w-4 h-4 text-brand-red" />
+                📝 历史考纲自测与模拟考
+              </h4>
+              
+              {testAttempts.length === 0 ? (
+                <p className="text-3xs text-gray-400 font-medium py-4 text-center">暂无自测或考试记录</p>
+              ) : (
+                <div className="divide-y divide-gray-100 max-h-[280px] overflow-y-auto pr-1">
+                  {testAttempts.map(att => {
+                    const plan = plans.find(p => p.id === att.planId);
+                    return (
+                      <div key={att.id} className="py-2.5 text-3xs space-y-1">
+                        <div className="flex justify-between items-start gap-1">
+                          <p className="font-extrabold text-gray-800 line-clamp-1">{plan?.name || '心肺系统自测'}</p>
+                          <span className="font-black font-mono text-brand-red text-2xs shrink-0">{att.score}分</span>
+                        </div>
+                        <div className="flex justify-between text-4xs text-gray-400">
+                          <span>{att.type === 'quiz' ? '综合模拟考' : '日常大纲自测'}</span>
+                          <span>答对 {att.correctCount}/{att.totalQuestions} 题</span>
+                        </div>
+                        <p className="text-4xs text-gray-400 text-right font-medium">提交于: {att.completedAt}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* 2. 历次评估学情报告 */}
+            <div className="border border-brand-borderred/30 rounded-lg p-4 bg-white space-y-3.5 shadow-2xs">
+              <h4 className="text-xs font-black text-brand-darkred flex items-center gap-1.5 pb-2 border-b border-gray-100">
+                <Award className="w-4 h-4 text-brand-gold fill-brand-gold/20" />
+                📊 历次考后多维评估报告
+              </h4>
+              
+              {testAttempts.length === 0 ? (
+                <p className="text-3xs text-gray-400 font-medium py-4 text-center">暂无诊断报告记录</p>
+              ) : (
+                <div className="divide-y divide-gray-100 max-h-[280px] overflow-y-auto pr-1">
+                  {testAttempts.map((att, idx) => {
+                    const plan = plans.find(p => p.id === att.planId);
+                    return (
+                      <div key={'rep-' + att.id} className="py-2.5 text-3xs space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <p className="font-extrabold text-gray-800 line-clamp-1">诊断报告 #{testAttempts.length - idx}</p>
+                          <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-700 rounded border border-emerald-100 font-extrabold text-4xs">教研已诊断</span>
+                        </div>
+                        <p className="text-4xs text-gray-500 line-clamp-1 font-medium">大纲关联：{plan?.name || '心肺系统计划'}</p>
+                        <div className="flex justify-between items-center text-4xs text-gray-400">
+                          <span>评估正确率：{Math.round((att.correctCount / att.totalQuestions) * 100)}%</span>
+                          <button 
+                            onClick={() => { setReportTab('current'); setView('S5'); }}
+                            className="text-brand-red hover:underline font-bold cursor-pointer"
+                          >
+                            查看报告
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* 3. 历史智能补盲包记录 */}
+            <div className="border border-brand-borderred/30 rounded-lg p-4 bg-white space-y-3.5 shadow-2xs">
+              <h4 className="text-xs font-black text-brand-darkred flex items-center gap-1.5 pb-2 border-b border-gray-100">
+                <Sparkles className="w-4 h-4 text-brand-gold fill-brand-gold/20" />
+                ⚡ 历史 AI 智能补盲包
+              </h4>
+              
+              {remediationPackets.length === 0 ? (
+                <p className="text-3xs text-gray-400 font-medium py-4 text-center">暂无生成补盲包记录</p>
+              ) : (
+                <div className="divide-y divide-gray-100 max-h-[280px] overflow-y-auto pr-1">
+                  {remediationPackets.map((pkt) => {
+                    const statusText = pkt.status === 'not_started' ? '未开始' 
+                      : pkt.status === 'studying' ? '进行中' 
+                      : pkt.status === 'retesting' ? '复测中' 
+                      : pkt.status === 'completed' ? '已攻克' 
+                      : '已消盲结课';
+                    const statusColor = pkt.status === 'retested' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : pkt.status === 'not_started' ? 'bg-amber-50 text-[#805300] border-amber-200'
+                      : 'bg-brand-lightred text-brand-red border-brand-borderred/30';
+
+                    return (
+                      <div key={pkt.id} className="py-2.5 text-3xs space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <p className="font-extrabold text-gray-800 line-clamp-1">{pkt.planName}</p>
+                          <span className={`px-1.5 py-0.2 rounded border font-extrabold text-4xs ${statusColor}`}>{statusText}</span>
+                        </div>
+                        <p className="text-4xs text-gray-500 font-semibold line-clamp-1">
+                          薄弱考点：<strong className="text-brand-darkred font-extrabold">{pkt.weakPoints.join('、')}</strong>
                         </p>
+                        <div className="flex justify-between items-center text-4xs text-gray-400">
+                          <span>含 {pkt.questions.length} 道仿真复测题</span>
+                          <button 
+                            onClick={() => { setView('S4'); }}
+                            className="text-brand-red hover:underline font-bold cursor-pointer"
+                          >
+                            前往补盲
+                          </button>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <span className="font-black font-mono text-brand-red text-xs block">{att.score} 分</span>
-                        <span className="text-3xs text-gray-400 font-bold">答对 {att.correctCount}/{att.totalQuestions} 题</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
