@@ -405,7 +405,7 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                     已加入 {myPlansList.length} 个学习计划，当前有 {remediationPackets.filter(p => p.status !== 'retested').length || 1} 个补盲任务待完成
                   </h4>
                   <p className="text-gray-600 leading-relaxed">
-                    已激活复习大纲，日常练习与错题消盲任务已同步生成。
+                    已激活复习大纲，练习与错题补盲任务已同步生成。
                   </p>
                 </div>
               )}
@@ -431,7 +431,7 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                 >
                   <div className="absolute top-0 left-0 w-1 h-full bg-brand-gold group-hover:w-1.5 transition-all" />
                   <div className="flex items-center justify-between mb-1 pl-1">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">今日错题与补盲</span>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">错题补盲</span>
                     <AlertCircle className="w-4 h-4 text-brand-gold" />
                   </div>
                   <div className="text-xl font-black text-brand-gold pl-1">
@@ -476,7 +476,7 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                   {[
                     { label: '我的计划', desc: '大纲阶段进度', viewId: 'S6', color: 'bg-rose-50 hover:bg-rose-100/60 border-rose-100 text-rose-800' },
                     { label: '继续学习', desc: '当前章节详情', viewId: 'S2', color: 'bg-amber-50 hover:bg-amber-100/60 border-amber-100 text-amber-800' },
-                    { label: '日常练习', desc: '章节习题自测', action: () => handleStartPhase('plan_01', 'p1'), color: 'bg-sky-50 hover:bg-sky-100/60 border-sky-100 text-sky-800' },
+                    { label: '阶段练习', desc: '章节习题自测', action: () => handleStartPhase('plan_01', 'p1'), color: 'bg-sky-50 hover:bg-sky-100/60 border-sky-100 text-sky-800' },
                     { label: '模拟测验', desc: '阶段真题考试', action: () => handleStartPhase('plan_01', 'p2'), color: 'bg-indigo-50 hover:bg-indigo-100/60 border-indigo-100 text-indigo-800' },
                     { label: '错题补盲', desc: '薄弱点强化课', viewId: 'S4', color: 'bg-orange-50 hover:bg-orange-100/60 border-orange-100 text-orange-800' },
                     { label: '学习报告', desc: '诊断及雷达图', viewId: 'S5', color: 'bg-emerald-50 hover:bg-emerald-100/60 border-emerald-100 text-emerald-800' },
@@ -500,8 +500,8 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
               <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                   <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-brand-gold fill-brand-gold" />
-                    今日备考任务大盘（教研标准对齐）
+                    <Award className="w-4 h-4 text-brand-red" />
+                    今日备考任务
                   </h4>
                   <span className="text-3xs text-gray-400 font-bold">每日 24:00 自动更新</span>
                 </div>
@@ -548,36 +548,36 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                       <div className="bg-amber-50/50 border border-brand-gold/20 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                           <div className="flex items-center gap-2 mb-1.5">
-                            <span className="px-2 py-0.5 text-3xs bg-brand-gold/20 text-amber-800 rounded border border-brand-gold/30 font-bold">AI 定向错题补盲</span>
-                            <h5 className="font-bold text-xs text-amber-900">薄弱知识考点相似题加练包已送达</h5>
+                            <span className="px-2 py-0.5 text-3xs bg-brand-gold/20 text-amber-800 rounded border border-brand-gold/30 font-bold">错题补盲加练</span>
+                            <h5 className="font-bold text-xs text-amber-900">考点补盲加练任务已生成</h5>
                           </div>
                           <p className="text-2xs text-gray-600">
-                            已检测到您在自测中出现的薄弱点：<strong className="text-brand-darkred">{remediationPackets.filter(p => p.status !== 'retested')[0].weakPoints.join('、')}</strong>。系统已备齐仿真题与精细微课。
+                            已检测到您在自测中出现的薄弱点：<strong className="text-brand-darkred">{remediationPackets.filter(p => p.status !== 'retested')[0].weakPoints.join('、')}</strong>。已准备考点仿真题与微课视频。
                           </p>
                         </div>
                         <button 
                           onClick={() => setView('S4')}
                           className="self-start md:self-auto px-4 py-1.5 bg-brand-gold hover:bg-amber-600 text-[#3b0000] rounded text-xs font-bold flex items-center gap-1 transition-all shadow-xs cursor-pointer"
                         >
-                          前往补盲消错 <ChevronRight className="w-3 h-3" />
+                          前往补盲加练 <ChevronRight className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (
                       <div className="bg-emerald-50/40 border border-emerald-100 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                           <div className="flex items-center gap-2 mb-1.5">
-                            <span className="px-2 py-0.5 text-3xs bg-emerald-100 text-emerald-800 rounded font-bold">AI 消盲通过</span>
-                            <h5 className="font-bold text-xs text-emerald-900">暂无积压的薄弱考点，掌握率满格</h5>
+                            <span className="px-2 py-0.5 text-3xs bg-emerald-100 text-emerald-800 rounded font-bold">无待补盲考点</span>
+                            <h5 className="font-bold text-xs text-emerald-900">暂无薄弱考点</h5>
                           </div>
                           <p className="text-2xs text-gray-600">
-                            干得漂亮！您在大纲中所触发的历次错题已全部通过仿真题加练并消除完毕。
+                            您在大纲中所触发的错题已全部完成加练。
                           </p>
                         </div>
                         <button 
                           onClick={() => setView('S4')}
                           className="self-start md:self-auto px-4 py-1.5 bg-white border border-emerald-200 hover:bg-emerald-50 text-emerald-800 rounded text-xs font-bold transition-all cursor-pointer"
                         >
-                          查看历史复习仓
+                          查看补盲历史
                         </button>
                       </div>
                     )}
@@ -1288,13 +1288,13 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
           {/* Remediation Packets Panel */}
           <div className="space-y-4 bg-gradient-to-br from-amber-50/30 to-brand-lightred/10 p-5 rounded-lg border border-brand-borderred/30">
             <div className="flex items-center gap-1.5 border-b border-brand-borderred/10 pb-2">
-              <Sparkles className="w-4 h-4 text-brand-gold fill-brand-gold" />
-              <h4 className="text-xs font-black text-brand-darkred">AI 专属薄弱知识点加练包 (教务同步)</h4>
+              <AlertCircle className="w-4 h-4 text-brand-gold" />
+              <h4 className="text-xs font-bold text-brand-darkred">薄弱知识点补盲加练</h4>
             </div>
 
             {remediationPackets.length === 0 ? (
               <div className="border border-dashed border-brand-borderred/30 rounded-lg p-6 text-center text-gray-400 text-xs font-medium">
-                暂无自动触发的补盲加练包。当你在计划测验中出现不及格或薄弱点较多时，系统将即时智能生成！
+                暂无待完成的补盲加练包。当自测或测验中发现薄弱考点时，此处将自动生成补盲加练内容。
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">
@@ -1823,26 +1823,26 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                     )}
                   </div>
 
-                  {/* AI 补盲包一键跳转提示栏 */}
+                  {/* 补盲包跳转提示 */}
                   <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-brand-gold/40 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-3xs">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-brand-gold/10 rounded-full border border-brand-gold/20">
-                        <Sparkles className="w-5 h-5 text-brand-gold fill-brand-gold" />
+                        <AlertCircle className="w-5 h-5 text-brand-gold" />
                       </div>
                       <div className="space-y-0.5">
-                        <h4 className="text-xs font-bold text-brand-darkred">教研同步：AI 已为你智能生成了 1 个考点深度补盲包！</h4>
-                        <p className="text-3xs text-gray-500 font-medium">针对薄弱点【药理学 - 糖皮质激素抗炎机制】。内含 8分钟名师微课视频 及 5道相似仿真巩固题。</p>
+                        <h4 className="text-xs font-bold text-brand-darkred">已为您匹配 1 个考点补盲包</h4>
+                        <p className="text-3xs text-gray-500 font-medium">针对薄弱点【药理学 - 糖皮质激素抗炎机制】。内含 8分钟微课视频及 5道相似仿真巩固题。</p>
                       </div>
                     </div>
                     <button 
                       onClick={() => {
                         setSelectedErrorId('q4'); 
                         setView('S4');
-                        showToast('已为你一键跳转到关联补盲包，快来开始微课攻克吧！', 'success');
+                        showToast('已跳转到关联补盲包', 'success');
                       }}
-                      className="px-4 py-1.5 bg-brand-red hover:bg-brand-darkred text-white text-xs font-black rounded cursor-pointer transition-all shrink-0 shadow-2xs"
+                      className="px-4 py-1.5 bg-brand-red hover:bg-brand-darkred text-white text-xs font-bold rounded cursor-pointer transition-all shrink-0 shadow-2xs"
                     >
-                      一键跳转到补盲包
+                      跳转至补盲包
                     </button>
                   </div>
 
@@ -2044,14 +2044,14 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                 </div>
               </div>
 
-              {/* AI intelligent remediation advice */}
+              {/* 大纲诊断与学习建议 */}
               <div className="p-4 bg-brand-lightred/20 border border-brand-borderred/20 rounded-lg text-2xs space-y-1.5">
                 <p className="font-extrabold text-brand-darkred flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-brand-gold fill-brand-gold animate-pulse" />
-                  AI 智能全周期大纲诊断建议 (教研同步)：
+                  <Award className="w-3.5 h-3.5 text-brand-red shrink-0" />
+                  大纲诊断与学习建议：
                 </p>
-                <p className="text-gray-600 font-semibold leading-relaxed">
-                  基于您在本大纲计划内的多轮答卷足迹，您的「心血管系统」、「呼吸系统」章节掌握极佳，正确率均达标 100%。唯独「临床药理学」下「糖皮质激素的抗炎机制」因审题不细、概念模糊出现错误，已被系统智能生成专项加练包。请点击下方的错题补盲中心，查看您的专属补盲卡片与复测题。
+                <p className="text-gray-600 font-medium leading-relaxed">
+                  基于您在本大纲计划内的答卷记录，您的「心血管系统」、「呼吸系统」章节掌握较好，正确率已达标。唯独「临床药理学」下「糖皮质激素的抗炎机制」存在错误，已生成专项加练包。请点击下方的错题补盲中心，查看补盲卡片与复测题。
                 </p>
               </div>
 
@@ -2065,9 +2065,9 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                 </button>
                 <button 
                   onClick={() => setView('S4')}
-                  className="px-4 py-2 bg-brand-red hover:bg-brand-darkred text-white rounded text-xs font-black shadow-xs cursor-pointer transition-colors"
+                  className="px-4 py-2 bg-brand-red hover:bg-brand-darkred text-white rounded text-xs font-bold shadow-xs cursor-pointer transition-colors"
                 >
-                  前往错题与补盲中心
+                  前往错题补盲
                 </button>
               </div>
             </div>
@@ -2242,11 +2242,11 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
               )}
             </div>
 
-            {/* 3. 历史智能补盲包记录 */}
+            {/* 3. 历史补盲记录 */}
             <div className="border border-brand-borderred/30 rounded-lg p-4 bg-white space-y-3.5 shadow-2xs">
-              <h4 className="text-xs font-black text-brand-darkred flex items-center gap-1.5 pb-2 border-b border-gray-100">
-                <Sparkles className="w-4 h-4 text-brand-gold fill-brand-gold/20" />
-                ⚡ 历史 AI 智能补盲包
+              <h4 className="text-xs font-bold text-brand-darkred flex items-center gap-1.5 pb-2 border-b border-gray-100">
+                <AlertCircle className="w-4 h-4 text-brand-gold" />
+                历史补盲记录
               </h4>
               
               {remediationPackets.length === 0 ? (
@@ -2257,8 +2257,8 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                     const statusText = pkt.status === 'not_started' ? '未开始' 
                       : pkt.status === 'studying' ? '进行中' 
                       : pkt.status === 'retesting' ? '复测中' 
-                      : pkt.status === 'completed' ? '已攻克' 
-                      : '已消盲结课';
+                      : pkt.status === 'completed' ? '已完成' 
+                      : '已完成补盲';
                     const statusColor = pkt.status === 'retested' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       : pkt.status === 'not_started' ? 'bg-amber-50 text-[#805300] border-amber-200'
                       : 'bg-brand-lightred text-brand-red border-brand-borderred/30';

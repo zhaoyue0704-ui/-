@@ -36,6 +36,8 @@ import {
   PlusCircle,
   Send,
   TrendingUp,
+  ChevronDown,
+  Settings,
 } from 'lucide-react';
 
 export default function App() {
@@ -142,12 +144,10 @@ export default function App() {
             {role === 'student' ? (
               <>
                 {[
-                  { id: 'S1', label: '工作台首页', icon: Home },
-                  { id: 'S6', label: '我的学习计划', icon: BookOpen },
-                  { id: 'S2', label: '当前计划详情', icon: ClipboardList },
-                  { id: 'S3', label: '答题与测验', icon: CheckSquare },
-                  { id: 'S4', label: '错题与补盲', icon: AlertCircle },
-                  { id: 'S5', label: '大纲诊断报告', icon: BarChart },
+                  { id: 'S1', label: '首页', icon: Home },
+                  { id: 'S6', label: '我的计划', icon: BookOpen },
+                  { id: 'S4', label: '错题补盲', icon: AlertCircle },
+                  { id: 'S5', label: '学习报告', icon: BarChart },
                 ].map(item => {
                   const isActive = studentView === item.id;
                   const IconComp = item.icon;
@@ -168,33 +168,105 @@ export default function App() {
                 })}
               </>
             ) : (
-              <>
-                {[
-                  { id: 'A1', label: '大盘概览', icon: Home },
-                  { id: 'A2', label: '学生范围管理', icon: Users },
-                  { id: 'A3', label: '考纲标准配置', icon: ClipboardList },
-                  { id: 'A4', label: '创建学习计划', icon: PlusCircle },
-                  { id: 'A5', label: '分拨与发布中心', icon: Send },
-                  { id: 'A6', label: '班级学情监控', icon: TrendingUp },
-                ].map(item => {
-                  const isActive = adminView === item.id;
-                  const IconComp = item.icon;
-                  return (
+              <div className="flex items-center gap-1.5">
+                {/* 概览 */}
+                <button
+                  onClick={() => setAdminView('A1')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-3xs font-black transition-all cursor-pointer ${
+                    adminView === 'A1'
+                      ? 'bg-brand-darkred text-white shadow-2xs'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <Home className="w-3.5 h-3.5 shrink-0" />
+                  <span>概览</span>
+                </button>
+
+                {/* 基础配置 */}
+                <div className="relative group py-1">
+                  <button className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-3xs font-black transition-all cursor-pointer ${
+                    (adminView === 'A2' || adminView === 'A3')
+                      ? 'bg-brand-darkred text-white shadow-2xs'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}>
+                    <Settings className="w-3.5 h-3.5 shrink-0" />
+                    <span>基础配置</span>
+                    <ChevronDown className="w-3 h-3 shrink-0 opacity-70" />
+                  </button>
+                  <div className="absolute left-0 top-full mt-1.5 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1.5 hidden group-hover:block z-50">
                     <button
-                      key={item.id}
-                      onClick={() => setAdminView(item.id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-3xs font-black transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-brand-darkred text-white shadow-2xs'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      onClick={() => setAdminView('A2')}
+                      className={`w-full text-left px-4 py-2 text-3xs font-bold block transition-colors ${
+                        adminView === 'A2' ? 'text-brand-darkred bg-brand-lightred/15 font-black border-l-2 border-brand-darkred' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`}
                     >
-                      <IconComp className="w-3.5 h-3.5 shrink-0" />
-                      <span>{item.label}</span>
+                      学生范围管理
                     </button>
-                  );
-                })}
-              </>
+                    <button
+                      onClick={() => setAdminView('A3')}
+                      className={`w-full text-left px-4 py-2 text-3xs font-bold block transition-colors ${
+                        adminView === 'A3' ? 'text-brand-darkred bg-brand-lightred/15 font-black border-l-2 border-brand-darkred' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                    >
+                      考试大纲配置
+                    </button>
+                  </div>
+                </div>
+
+                {/* 学习计划 */}
+                <div className="relative group py-1">
+                  <button className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-3xs font-black transition-all cursor-pointer ${
+                    (adminView === 'A4' || adminView === 'A5')
+                      ? 'bg-brand-darkred text-white shadow-2xs'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}>
+                    <ClipboardList className="w-3.5 h-3.5 shrink-0" />
+                    <span>学习计划</span>
+                    <ChevronDown className="w-3 h-3 shrink-0 opacity-70" />
+                  </button>
+                  <div className="absolute left-0 top-full mt-1.5 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1.5 hidden group-hover:block z-50">
+                    <button
+                      onClick={() => setAdminView('A4')}
+                      className={`w-full text-left px-4 py-2 text-3xs font-bold block transition-colors ${
+                        adminView === 'A4' ? 'text-brand-darkred bg-brand-lightred/15 font-black border-l-2 border-brand-darkred' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                    >
+                      创建学习计划
+                    </button>
+                    <button
+                      onClick={() => setAdminView('A5')}
+                      className={`w-full text-left px-4 py-2 text-3xs font-bold block transition-colors ${
+                        adminView === 'A5' ? 'text-brand-darkred bg-brand-lightred/15 font-black border-l-2 border-brand-darkred' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                    >
+                      计划发布与详情
+                    </button>
+                  </div>
+                </div>
+
+                {/* 学情运营 */}
+                <div className="relative group py-1">
+                  <button className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-3xs font-black transition-all cursor-pointer ${
+                    adminView === 'A6'
+                      ? 'bg-brand-darkred text-white shadow-2xs'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}>
+                    <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+                    <span>学情运营</span>
+                    <ChevronDown className="w-3 h-3 shrink-0 opacity-70" />
+                  </button>
+                  <div className="absolute left-0 top-full mt-1.5 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1.5 hidden group-hover:block z-50">
+                    <button
+                      onClick={() => setAdminView('A6')}
+                      className={`w-full text-left px-4 py-2 text-3xs font-bold block transition-colors ${
+                        adminView === 'A6' ? 'text-brand-darkred bg-brand-lightred/15 font-black border-l-2 border-brand-darkred' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                    >
+                      学情看板
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </nav>
 

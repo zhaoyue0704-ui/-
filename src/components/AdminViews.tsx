@@ -145,7 +145,7 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
     setClassProgress(prev => [...prev, newProgress]);
     setNewStudentName('');
     setShowAddStudentModal(false);
-    showToast('已导入试点学生');
+    showToast('已导入学生');
   };
 
   // A4 Wizard Handlers
@@ -255,14 +255,14 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
             </span>
           </h2>
           <p className="text-[11px] text-brand-lightred mt-1 font-medium">
-            维护统考标准大纲，监督各试点班级习题练习进度与薄弱点消盲反馈。
+            维护统考标准大纲，监督各班级习题练习进度与薄弱点补盲反馈。
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2 z-10">
           <button 
             onClick={() => setView('A4')}
-            className="px-3.5 py-1.5 bg-brand-gold hover:bg-amber-600 text-[#3b0000] rounded text-xs font-black flex items-center gap-1 transition-colors cursor-pointer shadow-sm"
+            className="px-3.5 py-1.5 bg-brand-gold hover:bg-amber-600 text-[#3b0000] rounded text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" /> 创建新计划
           </button>
@@ -282,12 +282,12 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
               {[
-                { label: '学生管理', desc: '试点学生进度与学籍', viewId: 'A2', color: 'bg-rose-50 hover:bg-rose-100/60 border-rose-100 text-rose-800' },
+                { label: '学生管理', desc: '学生进度与学籍', viewId: 'A2', color: 'bg-rose-50 hover:bg-rose-100/60 border-rose-100 text-rose-800' },
                 { label: '大纲配置', desc: '统考医学大纲配置树', viewId: 'A3', color: 'bg-amber-50 hover:bg-amber-100/60 border-amber-100 text-amber-800' },
                 { label: '创建计划', desc: '新备考大纲创建步骤', viewId: 'A4', color: 'bg-sky-50 hover:bg-sky-100/60 border-sky-100 text-sky-800' },
                 { label: '计划发布', desc: '分拨与发布总控中心', viewId: 'A5', color: 'bg-indigo-50 hover:bg-indigo-100/60 border-indigo-100 text-indigo-800' },
                 { label: '学情看板', desc: '全班维度数据双下钻', viewId: 'A6', color: 'bg-orange-50 hover:bg-orange-100/60 border-orange-100 text-orange-800' },
-                { label: '反馈核实', desc: '学生题目报错教研核对', action: () => { setView('A6'); setMonitorTab('feedbacks'); }, color: 'bg-emerald-50 hover:bg-emerald-100/60 border-emerald-100 text-emerald-800' },
+                { label: '反馈核实', desc: '学生题目报错核对', action: () => { setView('A6'); setMonitorTab('feedbacks'); }, color: 'bg-emerald-50 hover:bg-emerald-100/60 border-emerald-100 text-emerald-800' },
               ].map((item, idx) => (
                 <button
                   key={idx}
@@ -332,32 +332,32 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
 
           {/* Action To-dos Alerts */}
           <div className="border border-brand-borderred/30 bg-brand-lightred/20 rounded-lg p-5 space-y-3.5 shadow-2xs">
-            <h4 className="text-xs font-black text-[#8C0000] flex items-center gap-1.5">
-              <AlertTriangle className="w-4.5 h-4.5 text-brand-gold fill-brand-gold" /> 智能教务学情预警提醒 (高优先级日常办项)
+            <h4 className="text-xs font-bold text-[#8C0000] flex items-center gap-1.5">
+              <AlertTriangle className="w-4.5 h-4.5 text-brand-gold" /> 学情预警提醒 (日常待办)
             </h4>
 
             <div className="divide-y divide-brand-borderred/15 text-xs space-y-2.5">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2.5">
-                <span className="text-gray-700 font-semibold text-2xs leading-relaxed">
+                <span className="text-gray-700 font-medium text-2xs leading-relaxed">
                   ⚠️ <strong>张同学（std_01）</strong> 阶段模拟测验未达标触发大纲补盲，且超过24小时<strong>尚未启动微课加练</strong>。
                 </span>
                 <button 
                   onClick={() => handleSendReminder('张同学')}
-                  className="px-3 py-1.5 bg-brand-red hover:bg-brand-darkred text-white rounded text-3xs font-black shadow-xs cursor-pointer transition-colors"
+                  className="px-3 py-1.5 bg-brand-red hover:bg-brand-darkred text-white rounded text-3xs font-bold shadow-xs cursor-pointer transition-colors"
                 >
-                  一键智能发信催促
+                  发送提醒消息
                 </button>
               </div>
 
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2.5">
-                <span className="text-gray-700 font-semibold text-2xs leading-relaxed">
+                <span className="text-gray-700 font-medium text-2xs leading-relaxed">
                   💬 王小敏（std_03） 在作答【药理学 - 糖皮质激素核心考点】时提交了<strong>1条纠错纠错意见</strong>，质疑标准答案解析。
                 </span>
                 <button 
                   onClick={() => { setView('A6'); setMonitorTab('feedbacks'); }}
-                  className="px-3 py-1.5 bg-[#4d0000] hover:bg-[#2e0000] text-brand-lightred border border-brand-borderred/10 rounded text-3xs font-black shadow-xs cursor-pointer transition-colors"
+                  className="px-3 py-1.5 bg-[#4d0000] hover:bg-[#2e0000] text-brand-lightred border border-brand-borderred/10 rounded text-3xs font-bold shadow-xs cursor-pointer transition-colors"
                 >
-                  前往教研核实审核
+                  前往题目反馈核实
                 </button>
               </div>
             </div>
@@ -405,21 +405,21 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
             </div>
 
             <div className="bg-white border border-brand-borderred/20 rounded-lg p-5 space-y-4 shadow-2xs">
-              <h4 className="text-xs font-black text-brand-darkred flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-brand-darkred flex items-center gap-1.5">
                 <span className="w-1.5 h-3.5 bg-brand-gold rounded-full" />
-                系统精准补盲临床闭环成效
+                大纲考点补盲成效
               </h4>
               <div className="space-y-4 text-2xs">
-                <p className="text-gray-500 leading-relaxed font-semibold">
-                  大纲辅导系统本月共智能派发了 <strong className="text-brand-red">34 个</strong> 针对性的补盲加练题集包与个性化微课讲义，涵盖 5 大医学重点科目。
+                <p className="text-gray-500 leading-relaxed font-medium">
+                  大纲匹配辅导本月共派发了 <strong className="text-brand-red">34 个</strong> 针对性的补盲练习题集与微课讲义，涵盖 5 大医学科目。
                 </p>
                 <div className="p-3.5 bg-emerald-50 rounded-lg border border-emerald-100 text-emerald-800 space-y-1.5">
                   <p className="font-extrabold text-emerald-950 text-3xs flex items-center gap-1">
                     <CheckCircle className="w-4 h-4 text-emerald-600" />
-                    补盲加练后复测正确率平均提升幅度：
+                    加练复测正确率平均提升幅度：
                   </p>
-                  <p className="text-3xs font-semibold leading-relaxed text-emerald-900">
-                    试点班级学生在阅读考纲核心解析、学习微课精讲并完成定向复测练习后，该知识点的正确率平均<strong>提升了 28.5%</strong>，成效显著。
+                  <p className="text-3xs font-medium leading-relaxed text-emerald-900">
+                    学生在阅读考纲核心解析、观看微课并完成针对性练习后，该考点的正确率平均<strong>提升了 28.5%</strong>，补盲成效符合预期。
                   </p>
                 </div>
               </div>
@@ -555,11 +555,11 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
         <div className="space-y-6 animate-fade-in">
           <div className="flex justify-between items-center pb-2.5 border-b border-brand-borderred/20">
             <div>
-              <h3 className="text-xs font-black text-brand-darkred flex items-center gap-1.5">
+              <h3 className="text-xs font-bold text-brand-darkred flex items-center gap-1.5">
                 <Book className="w-4.5 h-4.5 text-brand-red" />
-                标准医学考试大纲精准匹配库 (教研核心资产)
+                标准医学考试大纲匹配库
               </h3>
-              <p className="text-3xs text-gray-500 mt-0.5 font-semibold">绑定医学核心科目与高危考点，作为计划阶段智能出题和相似题补盲抽取的底层考纲标签体系。</p>
+              <p className="text-3xs text-gray-500 mt-0.5 font-medium">绑定医学科目与核心考点，作为计划阶段出题和相似题补盲抽取的底层大纲标签体系。</p>
             </div>
           </div>
 
@@ -715,7 +715,7 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
             {creationStep === 2 && (
               <div className="space-y-4 text-xs">
                 <h4 className="font-black text-brand-darkred border-b border-gray-100 pb-2">第二步：选择所涵盖的标准大纲知识考点章节</h4>
-                <p className="text-3xs text-gray-500 font-bold leading-relaxed">系统已经自动从标准大纲精准匹配库中同步章节。勾选即可一键绑定相关的医学题库和微课解析资源：</p>
+                <p className="text-3xs text-gray-500 font-medium leading-relaxed">已自动从标准大纲匹配库中同步章节。勾选即可绑定相关的医学题库和微课解析资源：</p>
                 
                 <div className="space-y-2 pt-2 grid grid-cols-2 gap-3">
                   {[
@@ -792,7 +792,7 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
                   <div className="p-4 border-2 border-brand-red bg-brand-lightred/10 rounded-lg space-y-1 cursor-pointer">
                     <p className="font-black text-brand-darkred flex items-center gap-1">
                       <span className="w-1.5 h-1.5 bg-brand-red rounded-full" />
-                      1. AI 精准组卷匹配 (系统推荐)
+                      1. 大纲题库自动匹配 (推荐)
                     </p>
                     <p className="text-3xs text-gray-500 font-medium leading-relaxed">根据第二步所选的心血管、呼吸系统章节考纲分布，从题库中按比例自动抽取 5 道典型统考题进行全仿真自动组卷。</p>
                   </div>
@@ -826,8 +826,8 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
 
             {creationStep === 6 && (
               <div className="space-y-4 text-xs">
-                <h4 className="font-black text-brand-darkred border-b border-gray-100 pb-2">第六步：选择本学习计划需要分拨覆盖的学生试点范围</h4>
-                <p className="text-3xs text-gray-500 font-semibold leading-relaxed">您可以向全院指定身份阶段学生一键批量分发，或向特定班级单独派发：</p>
+                <h4 className="font-bold text-brand-darkred border-b border-gray-100 pb-2">第六步：选择本学习计划需要覆盖的学生范围</h4>
+                <p className="text-3xs text-gray-500 font-medium leading-relaxed">您可以向指定年级或特定班级的学生进行发布：</p>
                 
                 <div className="space-y-2.5 pt-2">
                   <label className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-100 rounded-lg cursor-pointer">
@@ -1022,13 +1022,13 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
               <div className="overflow-x-auto border border-brand-borderred/15 rounded-lg bg-white shadow-3xs">
                 <table className="w-full text-left text-2xs border-collapse">
                   <thead>
-                    <tr className="bg-brand-red text-white font-black text-3xs">
-                      <th className="p-3.5 pl-4">试点学生姓名</th>
+                    <tr className="bg-brand-red text-white font-bold text-3xs">
+                      <th className="p-3.5 pl-4">学生姓名</th>
                       <th className="p-3.5">考纲进度百分比</th>
                       <th className="p-3.5">基础题库正确率</th>
                       <th className="p-3.5">模拟测验最终得分</th>
-                      <th className="p-3.5">智能诊断薄弱考点</th>
-                      <th className="p-3.5">AI 自动补盲状态</th>
+                      <th className="p-3.5">薄弱考点诊断</th>
+                      <th className="p-3.5">匹配补盲状态</th>
                       <th className="p-3.5 pr-4 text-right">学情诊断操作</th>
                     </tr>
                   </thead>
@@ -1092,18 +1092,18 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
 
           {monitorTab === 'feedbacks' && (
             <div className="space-y-4">
-              <p className="text-3xs text-gray-500 font-bold">以下为试点班级学生在练习作答、错题解析或微课补盲大纲资源学习中一键报错提交的处理单：</p>
+              <p className="text-3xs text-gray-500 font-medium">以下为学生在练习作答、错题解析或微课学习中提交的题目纠错处理单：</p>
               
               <div className="space-y-4.5">
                 {feedbacks.map(fb => (
                   <div key={fb.id} className="border border-brand-borderred/15 bg-white rounded-lg p-4.5 space-y-3.5 text-2xs relative shadow-3xs overflow-hidden">
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-red" />
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 font-semibold">反馈反馈人：<strong>{fb.studentName}</strong></span>
-                      <span className={`px-2 py-0.5 rounded font-black text-3xs border ${
+                      <span className="text-gray-400 font-semibold">反馈学生：<strong>{fb.studentName}</strong></span>
+                      <span className={`px-2 py-0.5 rounded font-bold text-3xs border ${
                         fb.status === 'accepted' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-200'
                       }`}>
-                        {fb.status === 'accepted' ? '已核实采纳' : '待教研核实'}
+                        {fb.status === 'accepted' ? '已采纳' : '待审核'}
                       </span>
                     </div>
 
@@ -1178,7 +1178,7 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
                         <h3 className="font-black text-xs text-brand-darkred flex items-center gap-1">
                           📊 试点学生学情诊断画像大屏
                         </h3>
-                        <p className="text-3xs text-brand-gold font-extrabold uppercase tracking-wider">大纲通关级别智能系统</p>
+                        <p className="text-3xs text-brand-gold font-bold uppercase tracking-wider">大纲通关系统</p>
                       </div>
                       <button 
                         onClick={() => setSelectedStudentDrawerId(null)}
@@ -1192,13 +1192,13 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
                     <div className="bg-gradient-to-br from-gray-50 to-brand-lightred/5 border border-brand-borderred/20 p-4.5 rounded-lg space-y-2.5 text-2xs font-semibold">
                       <p className="text-brand-darkred font-black">学生姓名：<strong className="text-brand-red font-black text-xs">{row.name}</strong></p>
                       <p>教学身份阶段：{row.stage}</p>
-                      <p>当前运作计划：临床医学通关冲刺计划</p>
+                      <p>当前运作计划：临床医学通关计划</p>
                       <p className="text-gray-400">最近活跃登录时间：{row.lastActive}</p>
                     </div>
 
                     {/* Progress tracking */}
                     <div className="space-y-2.5">
-                      <h4 className="text-2xs font-black text-brand-darkred">大纲考测曲线与正确率表现：</h4>
+                      <h4 className="text-2xs font-bold text-brand-darkred">大纲考测与正确率表现：</h4>
                       <div className="grid grid-cols-2 gap-4 text-center text-2xs">
                         <div className="p-3.5 border border-brand-borderred/10 rounded-lg bg-white shadow-2xs">
                           <p className="text-gray-400 font-semibold">核心基础正确率</p>
@@ -1213,12 +1213,12 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
 
                     {/* Remediation status drill-down */}
                     <div className="p-4 bg-brand-lightred/10 border border-brand-borderred/20 rounded-lg text-2xs space-y-2 font-semibold">
-                      <p className="font-black text-brand-darkred flex items-center gap-1.5">⚡ 定向 AI 补盲加练复测包状态：</p>
+                      <p className="font-bold text-brand-darkred flex items-center gap-1.5">定向补盲加练状态：</p>
                       <p className="text-gray-600">关联薄弱考点：<span className="text-brand-red font-black">{row.weakPoints.length > 0 ? row.weakPoints.join(', ') : '药理学 - 糖皮质激素抗炎机制'}</span></p>
-                      <p className="text-gray-600">智能补盲状态：<span className="text-brand-gold font-black">{row.remediationStatus}</span></p>
+                      <p className="text-gray-600">补盲进度：<span className="text-brand-gold font-bold">{row.remediationStatus}</span></p>
                       {row.remediationImprovement && (
-                        <div className="p-2 bg-emerald-50 border border-emerald-100 rounded text-emerald-800 text-3xs font-black animate-fade-in">
-                          诊断成效：正确率同比提升了 ＋{row.remediationImprovement}%！
+                        <div className="p-2 bg-emerald-50 border border-emerald-100 rounded text-emerald-800 text-3xs font-bold animate-fade-in">
+                          提升幅度：正确率提升了 ＋{row.remediationImprovement}%！
                         </div>
                       )}
                     </div>
