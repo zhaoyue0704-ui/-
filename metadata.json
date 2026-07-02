@@ -1,0 +1,6 @@
+{
+  "name": "医学教育考试学习计划平台",
+  "description": "一个用于管理和执行医学教育考试学习计划、错题补盲、测验答题以及学情监控的交互式原型平台。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
