@@ -24,7 +24,9 @@ import {
   TrendingUp,
   XCircle,
   HelpCircle,
-  Calendar
+  Calendar,
+  BarChart2,
+  PieChart
 } from 'lucide-react';
 
 interface StudentViewsProps {
@@ -81,6 +83,9 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
   // S4 (Remediation) Local State
   const [selectedErrorId, setSelectedErrorId] = useState<string | null>(null);
   const [remediationTab, setRemediationTab] = useState<'解析' | '补盲' | '复习记录'>('解析');
+  const [errorSubjectFilter, setErrorSubjectFilter] = useState<string>('all');
+  const [errorDifficultyFilter, setErrorDifficultyFilter] = useState<string>('all');
+  const [errorSearchQuery, setErrorSearchQuery] = useState<string>('');
 
   // S5 (Report) View State
   const [reportTab, setReportTab] = useState<'current' | 'plan'>('current');
@@ -312,7 +317,7 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
   const myPlansList = plans.filter(p => student.joinedPlanIds.includes(p.id));
 
   return (
-    <div className="p-4 max-w-4xl mx-auto space-y-6 relative">
+    <div className="p-0 w-full space-y-6 relative text-gray-800">
       {/* Absolute Toast alert overlay */}
       {toast && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] bg-[#1e0000] border-2 border-brand-gold text-white px-5 py-3 rounded-lg shadow-xl flex items-center gap-2 text-xs font-black animate-pulse max-w-md text-center">
@@ -358,210 +363,290 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
         </div>
       </div>
 
-      {/* 2. S1 (Student Home View) */}
+      {/* 2. S1 (Student Home View - Fully fledged Workbench) */}
       {currentView === 'S1' && (
         <div className="space-y-6">
-          {/* State-driven Enrollment Banner */}
-          {myPlansList.length === 0 ? (
-            <div className="bg-amber-50 border-l-4 border-brand-gold p-4.5 rounded-r-lg text-2xs space-y-1 shadow-2xs border-y border-r border-brand-gold/10">
-              <h4 className="font-black text-[#805300] flex items-center gap-1.5">
-                <AlertCircle className="w-4.5 h-4.5 text-brand-gold shrink-0 fill-brand-gold/10" />
-                【学情状态：未加入任何统考学习大纲计划】
-              </h4>
-              <p className="text-gray-600 font-semibold leading-relaxed">
-                您尚未激活任何医学统考复习大纲计划。大纲精准匹配系统已在下方为您筛选出最匹配的备考路径。请勾选并「加入计划」，即可激活您的专属日常阶段自测、模拟考试卷与 AI 错题智能补盲加练功能。
-              </p>
-            </div>
-          ) : (
-            <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4.5 rounded-r-lg text-2xs space-y-1 shadow-2xs border-y border-r border-emerald-500/10">
-              <h4 className="font-black text-emerald-800 flex items-center gap-1.5">
-                <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0 fill-emerald-50" />
-                【学情状态：已加入复习计划，大纲备考推进中】
-              </h4>
-              <p className="text-gray-600 font-semibold leading-relaxed">
-                系统已成功为您建立每日备考大纲跟踪。您当前的首要任务是推进下方的阶段。AI 定向错题补盲包已随您答题的薄弱点实时在 S4 界面生成，保障您在大纲统考中闭环达标。
-              </p>
-            </div>
-          )}
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div 
-              onClick={() => setView('S6')}
-              className="bg-white border border-gray-200 p-5 rounded-lg cursor-pointer hover:border-brand-borderred hover:shadow-md transition-all relative overflow-hidden group"
-            >
-              <div className="absolute top-0 left-0 w-1 h-full bg-brand-red group-hover:w-1.5 transition-all" />
-              <div className="flex items-center justify-between mb-2 pl-2">
-                <span className="text-xs font-bold text-gray-500">我的学习计划</span>
-                <BookOpen className="w-4 h-4 text-brand-red" />
-              </div>
-              <div className="text-2xl font-black text-brand-red pl-2">{myPlansList.length} <span className="text-xs font-normal text-gray-500">个已加入</span></div>
-              <p className="text-2xs text-gray-400 mt-2 pl-2 flex items-center gap-1">点击查看全部计划历史 <ChevronRight className="w-3 h-3 text-brand-red" /></p>
-            </div>
-
-            <div 
-              onClick={() => setView('S4')}
-              className="bg-white border border-gray-200 p-5 rounded-lg cursor-pointer hover:border-brand-gold hover:shadow-md transition-all relative overflow-hidden group"
-            >
-              <div className="absolute top-0 left-0 w-1 h-full bg-brand-gold group-hover:w-1.5 transition-all" />
-              <div className="flex items-center justify-between mb-2 pl-2">
-                <span className="text-xs font-bold text-gray-500">薄弱点与错题</span>
-                <AlertCircle className="w-4 h-4 text-brand-gold" />
-              </div>
-              <div className="text-2xl font-black text-brand-gold pl-2">
-                {remediationPackets.length > 0 ? remediationPackets.reduce((acc, p) => acc + p.weakPoints.length, 0) : 1}
-                <span className="text-xs font-normal text-gray-500"> 个待补盲</span>
-              </div>
-              <p className="text-2xs text-gray-400 mt-2 pl-2 flex items-center gap-1">个性化加练包已生成 <ChevronRight className="w-3 h-3 text-brand-gold" /></p>
-            </div>
-
-            <div 
-              onClick={() => {
-                if (testAttempts.length > 0) {
-                  setReportTab('current');
-                  setView('S5');
-                } else {
-                  showToast('暂无测验报告，请先加入任一统考计划并完成首次自测练习！', 'warning');
-                }
-              }}
-              className="bg-white border border-gray-200 p-5 rounded-lg cursor-pointer hover:border-brand-green hover:shadow-md transition-all relative overflow-hidden group"
-            >
-              <div className="absolute top-0 left-0 w-1 h-full bg-brand-green group-hover:w-1.5 transition-all" />
-              <div className="flex items-center justify-between mb-2 pl-2">
-                <span className="text-xs font-bold text-gray-500">最新学情报告</span>
-                <Award className="w-4 h-4 text-brand-green" />
-              </div>
-              <div className="text-2xl font-black text-brand-green pl-2">
-                {testAttempts.length > 0 ? `${testAttempts[0].score}分` : '暂无'}
-              </div>
-              <p className="text-2xs text-gray-400 mt-2 pl-2 flex items-center gap-1">查看详细正确率与趋势 <ChevronRight className="w-3 h-3 text-brand-green" /></p>
-            </div>
-          </div>
-
-          {/* Today's Tasks */}
-          <div className="bg-gradient-to-r from-brand-lightred/30 to-brand-lightred/50 border border-brand-borderred/30 rounded-lg p-5">
-            <h4 className="text-xs font-bold text-brand-red uppercase tracking-wider mb-3 flex items-center gap-1">
-              <Sparkles className="w-4 h-4 text-brand-gold fill-brand-gold" /> 今日任务建议 (教务标准对齐)
-            </h4>
+          {/* Main Workbench Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
             
-            {myPlansList.length === 0 ? (
-              <div className="text-center py-4 space-y-2">
-                <p className="text-xs text-brand-darkred font-medium">您尚未加入任何适合该阶段的考试计划</p>
-                <p className="text-2xs text-gray-500">大纲匹配系统已在下方为您筛选出最匹配的备考路径，请立即点击“加入计划”开启学习。</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {myPlansList.slice(0, 1).map(plan => {
-                  const latestAttempt = testAttempts.find(a => a.planId === plan.id);
-                  // Find first incomplete phase
-                  const incompletePhase = plan.phases.find(phase => {
-                    const finished = testAttempts.some(att => att.planId === plan.id && att.type === phase.type);
-                    return !finished;
-                  }) || plan.phases[plan.phases.length - 1];
-
-                  return (
-                    <div key={plan.id} className="bg-white border border-brand-borderred/20 rounded-md p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="px-2 py-0.5 text-3xs bg-brand-lightred text-brand-red rounded border border-brand-borderred/30 font-bold">进行中计划</span>
-                          <h5 className="font-bold text-xs text-gray-800">{plan.name}</h5>
-                        </div>
-                        <p className="text-2xs text-gray-500">
-                          下一学习章节：<span className="text-brand-red font-semibold">{incompletePhase.name}</span> ({incompletePhase.questionCount}题 · {incompletePhase.difficulty}难度 · {incompletePhase.requirement})
-                        </p>
-                      </div>
-                      <button 
-                        onClick={() => handleStartPhase(plan.id, incompletePhase.id)}
-                        className="self-start md:self-auto px-4 py-1.5 bg-brand-red hover:bg-brand-darkred text-white rounded text-xs font-bold flex items-center gap-1 transition-all shadow-xs cursor-pointer"
-                      >
-                        继续学习 <ChevronRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                  );
-                })}
-
-                {/* Remediation Task */}
-                {remediationPackets.some(p => p.status !== 'retested') && (
-                  <div className="bg-amber-50/60 border border-brand-gold/30 rounded-md p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="px-2 py-0.5 text-3xs bg-brand-gold/10 text-brand-gold rounded border border-brand-gold/20 font-bold">今日 AI 补盲</span>
-                        <h5 className="font-bold text-xs text-brand-orange">有待攻克的薄弱知识相似题加练包</h5>
-                      </div>
-                      <p className="text-2xs text-brand-darkred">
-                        由于近考测中薄弱点增多，系统自动生成了：<strong className="font-bold">{remediationPackets.filter(p => p.status !== 'retested')[0].weakPoints.join(', ')}</strong> 的专属补盲包。
-                      </p>
-                    </div>
+            {/* Left Main column (SaaS style dashboard) */}
+            <div className="xl:col-span-8 space-y-6">
+              
+              {/* State-driven Enrollment Banner */}
+              {myPlansList.length === 0 ? (
+                <div className="bg-amber-50 border-l-4 border-brand-gold p-5 rounded-r-lg text-xs space-y-2 shadow-xs border-y border-r border-brand-gold/10">
+                  <h4 className="font-extrabold text-[#805300] flex items-center gap-1.5 text-sm">
+                    <AlertCircle className="w-5 h-5 text-brand-gold shrink-0 fill-brand-gold/10" />
+                    学情预警：您尚未加入任何统考医学大纲计划
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed font-medium">
+                    当前您的账号处于【未加入计划】状态。大纲精准匹配系统已在右侧为您筛选出最匹配的备考路径。加入后可即时解锁日常练习、临床模拟测验、以及 AI 错题智能补盲包，帮助您高效达标！
+                  </p>
+                  <div className="pt-1.5 flex gap-2">
                     <button 
-                      onClick={() => setView('S4')}
-                      className="self-start md:self-auto px-4 py-1.5 bg-brand-gold hover:bg-amber-600 text-[#3b0000] rounded text-xs font-bold flex items-center gap-1 transition-all shadow-xs cursor-pointer"
+                      onClick={() => {
+                        const firstRec = studentPlans[0];
+                        if (firstRec) {
+                          handleJoinPlan(firstRec.id);
+                        } else {
+                          showToast('暂无推荐计划，请联系管理员配置大纲。', 'warning');
+                        }
+                      }}
+                      className="px-3.5 py-1.5 bg-brand-gold hover:bg-amber-600 text-[#3b0000] text-3xs font-black rounded-md shadow-xs transition-colors cursor-pointer"
                     >
-                      开始补盲复测 <ChevronRight className="w-3 h-3" />
+                      💡 一键激活推荐计划
                     </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-emerald-50 border-l-4 border-emerald-500 p-5 rounded-r-lg text-xs space-y-2 shadow-xs border-y border-r border-emerald-500/10">
+                  <h4 className="font-extrabold text-emerald-800 flex items-center gap-1.5 text-sm">
+                    <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+                    学情跟踪：您已顺利加入医学考纲实训
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed font-medium">
+                    当前您的账号处于【已加入计划】状态。您已激活 <strong>{myPlansList.length}</strong> 项复习大纲，系统正在实时记录您的答题轨迹。AI 定向错题补盲包已根据您在临床练习中的薄弱点同步生成，请确保及时完成复测。
+                  </p>
+                </div>
+              )}
+
+              {/* Quick Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div 
+                  onClick={() => setView('S6')}
+                  className="bg-white border border-gray-200 p-5 rounded-xl cursor-pointer hover:border-brand-borderred hover:shadow-md transition-all relative overflow-hidden group shadow-xs"
+                >
+                  <div className="absolute top-0 left-0 w-1 h-full bg-brand-red group-hover:w-1.5 transition-all" />
+                  <div className="flex items-center justify-between mb-2 pl-1">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">我的复习计划</span>
+                    <BookOpen className="w-4.5 h-4.5 text-brand-red" />
+                  </div>
+                  <div className="text-2xl font-black text-brand-red pl-1">{myPlansList.length} <span className="text-xs font-semibold text-gray-400">个已加入</span></div>
+                  <p className="text-3xs text-gray-400 mt-2 pl-1 flex items-center gap-1">点击查看大纲阶段详情 <ChevronRight className="w-3 h-3 text-brand-red" /></p>
+                </div>
+
+                <div 
+                  onClick={() => setView('S4')}
+                  className="bg-white border border-gray-200 p-5 rounded-xl cursor-pointer hover:border-brand-gold hover:shadow-md transition-all relative overflow-hidden group shadow-xs"
+                >
+                  <div className="absolute top-0 left-0 w-1 h-full bg-brand-gold group-hover:w-1.5 transition-all" />
+                  <div className="flex items-center justify-between mb-2 pl-1">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">今日错题与补盲</span>
+                    <AlertCircle className="w-4.5 h-4.5 text-brand-gold" />
+                  </div>
+                  <div className="text-2xl font-black text-brand-gold pl-1">
+                    {remediationPackets.length > 0 ? remediationPackets.reduce((acc, p) => acc + p.weakPoints.length, 0) : 1}
+                    <span className="text-xs font-semibold text-gray-400"> 个待补盲</span>
+                  </div>
+                  <p className="text-3xs text-gray-400 mt-2 pl-1 flex items-center gap-1">AI 相似题加练包已生成 <ChevronRight className="w-3 h-3 text-brand-gold" /></p>
+                </div>
+
+                <div 
+                  onClick={() => {
+                    if (testAttempts.length > 0) {
+                      setReportTab('current');
+                      setView('S5');
+                    } else {
+                      showToast('暂无测验报告，请先加入计划并完成首次自测练习！', 'warning');
+                    }
+                  }}
+                  className="bg-white border border-gray-200 p-5 rounded-xl cursor-pointer hover:border-emerald-500 hover:shadow-md transition-all relative overflow-hidden group shadow-xs"
+                >
+                  <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500 group-hover:w-1.5 transition-all" />
+                  <div className="flex items-center justify-between mb-2 pl-1">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">最近测验报告</span>
+                    <Award className="w-4.5 h-4.5 text-emerald-500" />
+                  </div>
+                  <div className="text-2xl font-black text-emerald-600 pl-1">
+                    {testAttempts.length > 0 ? `${testAttempts[0].score}分` : '暂无'}
+                  </div>
+                  <p className="text-3xs text-gray-400 mt-2 pl-1 flex items-center gap-1">分析正确率与考点趋势 <ChevronRight className="w-3 h-3 text-emerald-500" /></p>
+                </div>
+              </div>
+
+              {/* Today's Tasks & Workbench Entry */}
+              <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-4.5 h-4.5 text-brand-gold fill-brand-gold" />
+                    今日备考任务大盘（教研标准对齐）
+                  </h4>
+                  <span className="text-3xs text-gray-400 font-bold">每日 24:00 自动更新大纲</span>
+                </div>
+                
+                {myPlansList.length === 0 ? (
+                  <div className="text-center py-6 space-y-2">
+                    <p className="text-xs text-brand-darkred font-bold">您当前暂无进行中的备考大纲</p>
+                    <p className="text-2xs text-gray-400 leading-relaxed max-w-md mx-auto">
+                      未激活计划前无法开启阶段测试与 AI 错题智能补盲加练。请从右侧【可加入大纲计划】中选择适合您的医学统考大纲并点击加入。
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {myPlansList.slice(0, 1).map(plan => {
+                      // Find first incomplete phase
+                      const incompletePhase = plan.phases.find(phase => {
+                        const finished = testAttempts.some(att => att.planId === plan.id && att.type === phase.type);
+                        return !finished;
+                      }) || plan.phases[plan.phases.length - 1];
+
+                      return (
+                        <div key={plan.id} className="bg-brand-lightred/30 border border-brand-borderred/10 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="px-2 py-0.5 text-3xs bg-brand-red text-white rounded font-bold">当前计划任务</span>
+                              <h5 className="font-bold text-xs text-brand-darkred">{plan.name}</h5>
+                            </div>
+                            <p className="text-2xs text-gray-600">
+                              下一学习章节：<span className="text-brand-red font-bold">{incompletePhase.name}</span> ({incompletePhase.questionCount}题 · {incompletePhase.difficulty}难度 · {incompletePhase.requirement})
+                            </p>
+                          </div>
+                          <button 
+                            onClick={() => handleStartPhase(plan.id, incompletePhase.id)}
+                            className="self-start md:self-auto px-4 py-1.5 bg-brand-red hover:bg-brand-darkred text-white rounded text-xs font-bold flex items-center gap-1 transition-all shadow-xs cursor-pointer"
+                          >
+                            继续练习作答 <ChevronRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+
+                    {/* Remediation Task Entry */}
+                    {remediationPackets.some(p => p.status !== 'retested') ? (
+                      <div className="bg-amber-50/50 border border-brand-gold/20 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="px-2 py-0.5 text-3xs bg-brand-gold/20 text-amber-800 rounded border border-brand-gold/30 font-bold">AI 定向错题补盲</span>
+                            <h5 className="font-bold text-xs text-amber-900">薄弱知识考点相似题加练包已送达</h5>
+                          </div>
+                          <p className="text-2xs text-gray-600">
+                            已检测到您在自测中出现的薄弱点：<strong className="text-brand-darkred">{remediationPackets.filter(p => p.status !== 'retested')[0].weakPoints.join('、')}</strong>。系统已备齐仿真题与精细微课。
+                          </p>
+                        </div>
+                        <button 
+                          onClick={() => setView('S4')}
+                          className="self-start md:self-auto px-4 py-1.5 bg-brand-gold hover:bg-amber-600 text-[#3b0000] rounded text-xs font-bold flex items-center gap-1 transition-all shadow-xs cursor-pointer"
+                        >
+                          前往补盲消错 <ChevronRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="bg-emerald-50/40 border border-emerald-100 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="px-2 py-0.5 text-3xs bg-emerald-100 text-emerald-800 rounded font-bold">AI 消盲通过</span>
+                            <h5 className="font-bold text-xs text-emerald-900">暂无积压的薄弱考点，掌握率满格</h5>
+                          </div>
+                          <p className="text-2xs text-gray-600">
+                            干得漂亮！您在大纲中所触发的历次错题已全部通过仿真题加练并消除完毕。
+                          </p>
+                        </div>
+                        <button 
+                          onClick={() => setView('S4')}
+                          className="self-start md:self-auto px-4 py-1.5 bg-white border border-emerald-200 hover:bg-emerald-50 text-emerald-800 rounded text-xs font-bold transition-all cursor-pointer"
+                        >
+                          查看历史复习仓
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
-
-          {/* Assigned & Recommend Plans (S1 core) */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-              <h4 className="text-xs font-bold text-brand-darkred uppercase tracking-wider flex items-center gap-1">
-                <BookOpen className="w-4 h-4 text-brand-red" />
-                适合我当前阶段的考试学习计划 ({studentPlans.length})
-              </h4>
-              <span className="text-3xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded font-semibold">基于“{student.stage}”匹配大纲</span>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
-              {studentPlans.map(plan => {
-                const isJoined = student.joinedPlanIds.includes(plan.id);
-                return (
-                  <div key={plan.id} className="border border-gray-200 rounded-lg p-5 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-brand-borderred hover:shadow-sm transition-all relative overflow-hidden">
-                    <div className="space-y-1.5 max-w-xl">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2 py-0.5 text-3xs bg-brand-lightred text-brand-red rounded-full border border-brand-borderred/30 font-bold">{plan.target}</span>
-                        <span className="text-3xs text-gray-400">学习周期：{plan.duration}</span>
-                      </div>
-                      <h5 className="font-bold text-sm text-gray-900 hover:text-brand-red cursor-pointer transition-colors" onClick={() => { setActivePlanId(plan.id); setView('S2'); }}>
-                        {plan.name}
-                      </h5>
-                      <div className="flex items-center gap-3 text-2xs text-gray-500">
-                        <span>涵盖科目大纲: <strong className="text-gray-700">{plan.syllabus.join(', ')}</strong></span>
-                        <span>·</span>
-                        <span>包含 {plan.phases.length} 个训练阶段</span>
-                        <span>·</span>
-                        <span>{plan.studentCount}人参与中</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => { setActivePlanId(plan.id); setView('S2'); }}
-                        className="px-3.5 py-1.5 border border-brand-borderred/40 hover:bg-brand-lightred/20 text-brand-darkred rounded text-xs font-bold cursor-pointer"
-                      >
-                        详情大纲
-                      </button>
-                      {isJoined ? (
-                        <button 
+            {/* Right Column (Study plan categorization and recommendation) */}
+            <div className="xl:col-span-4 space-y-6">
+              
+              {/* Enrollment Category Split */}
+              <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs space-y-4">
+                
+                {/* 1. Enrolled/Assigned Section */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider pb-2 border-b border-gray-100 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-red" />
+                    已分配/已激活的大纲计划 ({myPlansList.length})
+                  </h4>
+                  
+                  {myPlansList.length === 0 ? (
+                    <p className="text-2xs text-gray-400 font-medium py-1.5">暂无已激活的大纲。激活后，该计划将长期留档在“我的学习计划”中。</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {myPlansList.map(plan => (
+                        <div 
+                          key={plan.id}
                           onClick={() => { setActivePlanId(plan.id); setView('S2'); }}
-                          className="px-3.5 py-1.5 bg-gray-100 text-gray-400 border border-gray-200 rounded text-xs font-bold cursor-pointer"
+                          className="p-3 bg-brand-lightred/10 hover:bg-brand-lightred/20 border border-brand-borderred/15 rounded-lg cursor-pointer transition-all flex items-center justify-between"
                         >
-                          已加入
-                        </button>
-                      ) : (
-                        <button 
-                          onClick={() => handleJoinPlan(plan.id)}
-                          className="px-3.5 py-1.5 bg-brand-red hover:bg-brand-darkred text-white rounded text-xs font-bold transition-all shadow-xs cursor-pointer"
-                        >
-                          加入计划
-                        </button>
-                      )}
+                          <div className="min-w-0 pr-2">
+                            <h5 className="text-2xs font-extrabold text-brand-darkred truncate">{plan.name}</h5>
+                            <p className="text-[10px] text-gray-500 mt-1">涵盖大纲：{plan.syllabus.join('、')}</p>
+                          </div>
+                          <ChevronRight className="w-3.5 h-3.5 text-brand-red shrink-0" />
+                        </div>
+                      ))}
                     </div>
+                  )}
+                </div>
+
+                {/* 2. Available / Recommended Section */}
+                <div className="space-y-3 pt-2">
+                  <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider pb-2 border-b border-gray-100 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-gold" />
+                    推荐激活的国家统考大纲 ({studentPlans.filter(p => !student.joinedPlanIds.includes(p.id)).length})
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    {studentPlans.map(plan => {
+                      const isJoined = student.joinedPlanIds.includes(plan.id);
+                      return (
+                        <div 
+                          key={plan.id} 
+                          className={`p-4 border rounded-lg transition-all ${
+                            isJoined 
+                              ? 'bg-gray-50/50 border-gray-200' 
+                              : 'bg-white border-gray-200 hover:border-brand-borderred hover:shadow-xs'
+                          }`}
+                        >
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="px-1.5 py-0.2 text-[9px] bg-brand-lightred text-brand-red border border-brand-borderred/30 rounded font-bold">{plan.target}</span>
+                              <span className="text-[10px] text-gray-400">时间: {plan.duration}</span>
+                            </div>
+                            <h5 
+                              onClick={() => { setActivePlanId(plan.id); setView('S2'); }}
+                              className="font-bold text-2xs text-gray-800 hover:text-brand-red cursor-pointer transition-colors"
+                            >
+                              {plan.name}
+                            </h5>
+                          </div>
+
+                          <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-50 gap-2">
+                            <button 
+                              onClick={() => { setActivePlanId(plan.id); setView('S2'); }}
+                              className="text-3xs text-brand-red font-black hover:underline flex items-center gap-0.5 cursor-pointer"
+                            >
+                              查看大纲详情
+                            </button>
+                            {isJoined ? (
+                              <span className="text-3xs text-gray-400 font-bold bg-gray-100 px-2 py-1 rounded">已加入备考</span>
+                            ) : (
+                              <button 
+                                onClick={() => handleJoinPlan(plan.id)}
+                                className="px-2.5 py-1 bg-brand-red hover:bg-[#590000] text-white text-3xs font-black rounded transition-colors cursor-pointer"
+                              >
+                                激活并加入
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                </div>
+
+              </div>
             </div>
+
           </div>
         </div>
       )}
@@ -788,220 +873,306 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
             const isAnswered = isExamMode ? !!currentAns : isPracticeAnswerChecked;
 
             return (
-              <div className="space-y-6">
-                {/* Question Area */}
-                <div className="bg-white border border-brand-borderred/30 rounded-lg p-6 space-y-5 shadow-xs relative">
-                  <div className="flex items-center justify-between text-3xs text-gray-400 border-b border-gray-100 pb-2.5">
-                    <span className="px-2 py-0.5 bg-brand-lightred text-brand-red rounded font-bold border border-brand-borderred/20">{question.category} · {question.type}型题</span>
-                    <span className="font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded border border-brand-gold/10">进度: {currentQuestionIndex + 1} / {list.length}</span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-3xs font-bold text-gray-400">【临床试题题干】</span>
-                    <p className="text-xs font-semibold text-gray-800 leading-relaxed">
-                      {question.stem}
-                    </p>
-                  </div>
-
-                  {/* Options List */}
-                  <div className="space-y-2.5">
-                    {question.options.map((option, idx) => {
-                      const optionChar = ['A', 'B', 'C', 'D'][idx];
-                      let btnStyle = 'border-gray-200 hover:border-brand-borderred/40 hover:bg-brand-lightred/10 bg-white text-gray-800';
-                      
-                      if (isExamMode) {
-                        if (currentAns === optionChar) {
-                          btnStyle = 'border-brand-red bg-brand-lightred/50 text-brand-darkred font-bold ring-1 ring-brand-red';
-                        }
-                      } else {
-                        // Practice Mode Colors immediately after submission
-                        if (isPracticeAnswerChecked) {
-                          if (optionChar === question.answer) {
-                            btnStyle = 'border-emerald-500 bg-emerald-50 text-emerald-800 font-bold ring-1 ring-emerald-500';
-                          } else if (selectedPracticeAnswer === optionChar) {
-                            btnStyle = 'border-rose-500 bg-rose-50 text-rose-800 font-bold';
-                          }
-                        } else if (selectedPracticeAnswer === optionChar) {
-                          btnStyle = 'border-brand-red bg-brand-lightred text-brand-darkred font-bold ring-1 ring-brand-red';
-                        }
-                      }
-
-                      return (
-                        <button
-                          key={optionChar}
-                          onClick={() => {
-                            if (isExamMode) handleExamAnswerSelect(question.id, optionChar);
-                            else handlePracticeAnswerSelect(optionChar);
-                          }}
-                          className={`w-full text-left p-3.5 text-xs border rounded-lg transition-all flex items-center justify-between cursor-pointer ${btnStyle}`}
-                        >
-                          <span className="flex items-center gap-3">
-                            <span className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 text-gray-700 text-3xs font-extrabold border border-gray-200 shrink-0">
-                              {optionChar}
-                            </span>
-                            <span className="font-medium">{option}</span>
-                          </span>
-                          
-                          {!isExamMode && isPracticeAnswerChecked && optionChar === question.answer && (
-                            <span className="text-3xs text-white bg-emerald-600 px-2 py-0.5 rounded font-extrabold shadow-2xs">标准答案</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Instant Feedback Panel (Practice Mode Only) */}
-                {!isExamMode && isPracticeAnswerChecked && (
-                  <div className="bg-emerald-50/20 border border-emerald-200 rounded-lg p-5 space-y-4 shadow-2xs">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-100 pb-3">
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2.5 py-0.5 text-3xs rounded font-bold ${
-                          selectedPracticeAnswer === question.answer ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                        }`}>
-                          {selectedPracticeAnswer === question.answer ? '回答正确 ✓' : '回答错误 ✗'}
-                        </span>
-                        <span className="text-2xs text-gray-600">
-                          你的答案：<strong className={selectedPracticeAnswer === question.answer ? 'text-emerald-700' : 'text-rose-700'}>{selectedPracticeAnswer}</strong> · 
-                          正确答案：<strong className="text-emerald-700">{question.answer}</strong>
-                        </span>
-                      </div>
-                      
-                      <span className="text-3xs text-brand-gold bg-amber-50 px-2 py-0.5 rounded border border-brand-gold/20 font-bold">考点: {question.knowledgePoint}</span>
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                
+                {/* Left Column: Question Area */}
+                <div className="xl:col-span-9 space-y-6">
+                  
+                  {/* Question Card */}
+                  <div className="bg-white border border-brand-borderred/30 rounded-lg p-6 space-y-5 shadow-xs relative">
+                    <div className="flex items-center justify-between text-3xs text-gray-400 border-b border-gray-100 pb-2.5">
+                      <span className="px-2 py-0.5 bg-brand-lightred text-brand-red rounded font-bold border border-brand-borderred/20">{question.category} · {question.type}型题</span>
+                      <span className="font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded border border-brand-gold/10">进度: {currentQuestionIndex + 1} / {list.length}</span>
                     </div>
 
-                    <div className="space-y-1.5 text-2xs text-gray-700">
-                      <p className="font-extrabold text-brand-darkred flex items-center gap-1">
-                        <Award className="w-3.5 h-3.5 text-brand-gold" />
-                        【权威解析及补盲指南】
+                    <div className="space-y-2">
+                      <span className="text-3xs font-bold text-gray-400">【临床试题题干】</span>
+                      <p className="text-xs font-semibold text-gray-800 leading-relaxed">
+                        {question.stem}
                       </p>
-                      <p className="leading-relaxed bg-white/70 p-3 rounded border border-brand-borderred/10 font-medium whitespace-pre-line">{question.explanation}</p>
+                    </div>
+
+                    {/* Options List */}
+                    <div className="space-y-2.5">
+                      {question.options.map((option, idx) => {
+                        const optionChar = ['A', 'B', 'C', 'D'][idx];
+                        let btnStyle = 'border-gray-200 hover:border-brand-borderred/40 hover:bg-brand-lightred/10 bg-white text-gray-800';
+                        
+                        if (isExamMode) {
+                          if (currentAns === optionChar) {
+                            btnStyle = 'border-brand-red bg-brand-lightred/50 text-brand-darkred font-bold ring-1 ring-brand-red';
+                          }
+                        } else {
+                          // Practice Mode Colors immediately after submission
+                          if (isPracticeAnswerChecked) {
+                            if (optionChar === question.answer) {
+                              btnStyle = 'border-emerald-500 bg-emerald-50 text-emerald-800 font-bold ring-1 ring-emerald-500';
+                            } else if (selectedPracticeAnswer === optionChar) {
+                              btnStyle = 'border-rose-500 bg-rose-50 text-rose-800 font-bold';
+                            }
+                          } else if (selectedPracticeAnswer === optionChar) {
+                            btnStyle = 'border-brand-red bg-brand-lightred text-brand-darkred font-bold ring-1 ring-brand-red';
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={optionChar}
+                            onClick={() => {
+                              if (isExamMode) handleExamAnswerSelect(question.id, optionChar);
+                              else handlePracticeAnswerSelect(optionChar);
+                            }}
+                            className={`w-full text-left p-3.5 text-xs border rounded-lg transition-all flex items-center justify-between cursor-pointer ${btnStyle}`}
+                          >
+                            <span className="flex items-center gap-3">
+                              <span className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 text-gray-700 text-3xs font-extrabold border border-gray-200 shrink-0">
+                                {optionChar}
+                              </span>
+                              <span className="font-medium">{option}</span>
+                            </span>
+                            
+                            {!isExamMode && isPracticeAnswerChecked && optionChar === question.answer && (
+                              <span className="text-3xs text-white bg-emerald-600 px-2 py-0.5 rounded font-extrabold shadow-2xs">标准答案</span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
-                )}
 
-                {/* Error Cause Classification (Practice Mode Only, on mistake) */}
-                {!isExamMode && isPracticeAnswerChecked && selectedPracticeAnswer !== question.answer && (
-                  <div className="bg-rose-50/50 p-3.5 rounded-lg border border-rose-200 space-y-2">
-                    <p className="text-3xs font-extrabold text-rose-800 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5 text-rose-700" />
-                      教研核实：请自主选择此题回答错误的【错因归因】
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {['审题不细', '概念模糊', '知识遗忘', '解题粗心'].map(cause => (
-                        <button
-                          key={cause}
-                          onClick={() => showToast(`已将错因 【${cause}】 精准归档至该大纲考点的薄弱点分析仓！`, 'info')}
-                          className="px-2.5 py-1 bg-white hover:bg-rose-100 border border-rose-200 rounded text-3xs text-rose-700 font-extrabold cursor-pointer transition-colors"
-                        >
-                          {cause}
-                        </button>
-                      ))}
+                  {/* Instant Feedback Panel (Practice Mode Only) */}
+                  {!isExamMode && isPracticeAnswerChecked && (
+                    <div className="bg-emerald-50/20 border border-emerald-200 rounded-lg p-5 space-y-4 shadow-2xs">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-100 pb-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2.5 py-0.5 text-3xs rounded font-bold ${
+                            selectedPracticeAnswer === question.answer ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                          }`}>
+                            {selectedPracticeAnswer === question.answer ? '回答正确 ✓' : '回答错误 ✗'}
+                          </span>
+                          <span className="text-2xs text-gray-600">
+                            你的答案：<strong className={selectedPracticeAnswer === question.answer ? 'text-emerald-700' : 'text-rose-700'}>{selectedPracticeAnswer}</strong> · 
+                            正确答案：<strong className="text-emerald-700">{question.answer}</strong>
+                          </span>
+                        </div>
+                        
+                        <span className="text-3xs text-brand-gold bg-amber-50 px-2 py-0.5 rounded border border-brand-gold/20 font-bold">考点: {question.knowledgePoint}</span>
+                      </div>
+
+                      <div className="space-y-1.5 text-2xs text-gray-700">
+                        <p className="font-extrabold text-brand-darkred flex items-center gap-1">
+                          <Award className="w-3.5 h-3.5 text-brand-gold" />
+                          【权威解析及补盲指南】
+                        </p>
+                        <p className="leading-relaxed bg-white/70 p-3 rounded border border-brand-borderred/10 font-medium whitespace-pre-line">{question.explanation}</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Uncertain Bookmark & Draft Progress Bar */}
-                <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200 text-3xs text-gray-500 gap-3">
-                  <button
-                    onClick={() => {
-                      const flagged = !uncertainQuestions[question.id];
-                      setUncertainQuestions(prev => ({ ...prev, [question.id]: flagged }));
-                      showToast(flagged ? '📌 已成功将此题标记为【不确定试题】，便于考后精准复习！' : '📌 已取消本题的不确定标记', 'info');
-                    }}
-                    className={`px-3 py-1.5 rounded border font-black flex items-center gap-1.5 transition-colors cursor-pointer text-3xs ${
-                      uncertainQuestions[question.id]
-                        ? 'bg-amber-100 border-brand-gold text-brand-gold font-bold ring-1 ring-brand-gold/30'
-                        : 'bg-white border-gray-300 hover:bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    <Bookmark className={`w-3.5 h-3.5 ${uncertainQuestions[question.id] ? 'fill-brand-gold text-brand-gold' : 'text-gray-400'}`} />
-                    {uncertainQuestions[question.id] ? '已标记不确定' : '标记为不确定'}
-                  </button>
+                  {/* Error Cause Classification (Practice Mode Only, on mistake) */}
+                  {!isExamMode && isPracticeAnswerChecked && selectedPracticeAnswer !== question.answer && (
+                    <div className="bg-rose-50/50 p-3.5 rounded-lg border border-rose-200 space-y-2">
+                      <p className="text-3xs font-extrabold text-rose-800 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-700" />
+                        教研核实：请自主选择此题回答错误的【错因归因】
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {['审题不细', '概念模糊', '知识遗忘', '解题粗心'].map(cause => (
+                          <button
+                            key={cause}
+                            onClick={() => showToast(`已将错因 【${cause}】 精准归档至该大纲考点的薄弱点分析仓！`, 'info')}
+                            className="px-2.5 py-1 bg-white hover:bg-rose-100 border border-rose-200 rounded text-3xs text-rose-700 font-extrabold cursor-pointer transition-colors"
+                          >
+                            {cause}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                  <button
-                    onClick={() => {
-                      showToast('💾 当前大纲作答进度已实时本地暂存，您可以随时安全退出或继续答题。', 'success');
-                    }}
-                    className="px-3 py-1.5 bg-white hover:bg-gray-100 border border-gray-300 rounded font-black text-gray-700 flex items-center gap-1.5 cursor-pointer transition-colors text-3xs"
-                  >
-                    <Clock className="w-3.5 h-3.5 text-gray-500" />
-                    暂存作答草稿
-                  </button>
-                </div>
-
-                {/* Question Action Controls */}
-                <div className="flex items-center justify-between pt-1">
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => setShowFeedbackModal(true)}
-                      className="px-3 py-1.5 border border-brand-borderred/30 hover:bg-brand-lightred/20 text-brand-red rounded text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                  {/* Uncertain Bookmark & Draft Progress Bar */}
+                  <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200 text-3xs text-gray-500 gap-3">
+                    <button
+                      onClick={() => {
+                        const flagged = !uncertainQuestions[question.id];
+                        setUncertainQuestions(prev => ({ ...prev, [question.id]: flagged }));
+                        showToast(flagged ? '📌 已成功将此题标记为【不确定试题】，便于考后精准复习！' : '📌 已取消本题的不确定标记', 'info');
+                      }}
+                      className={`px-3 py-1.5 rounded border font-black flex items-center gap-1.5 transition-colors cursor-pointer text-3xs ${
+                        uncertainQuestions[question.id]
+                          ? 'bg-amber-100 border-brand-gold text-brand-gold font-bold ring-1 ring-brand-gold/30'
+                          : 'bg-white border-gray-300 hover:bg-gray-100 text-gray-700'
+                      }`}
                     >
-                      <HelpCircle className="w-3.5 h-3.5" /> 纠错反馈
+                      <Bookmark className={`w-3.5 h-3.5 ${uncertainQuestions[question.id] ? 'fill-brand-gold text-brand-gold' : 'text-gray-400'}`} />
+                      {uncertainQuestions[question.id] ? '已标记不确定' : '标记为不确定'}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        showToast('💾 当前大纲作答进度已实时本地暂存，您可以随时安全退出或继续答题。', 'success');
+                      }}
+                      className="px-3 py-1.5 bg-white hover:bg-gray-100 border border-gray-300 rounded font-black text-gray-700 flex items-center gap-1.5 cursor-pointer transition-colors text-3xs"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-gray-500" />
+                      暂存作答草稿
                     </button>
                   </div>
 
-                  <div className="flex gap-2">
-                    {currentQuestionIndex > 0 && (
+                  {/* Question Action Controls */}
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex gap-2">
                       <button 
-                        onClick={() => {
-                          setCurrentQuestionIndex(prev => prev - 1);
-                          if (!isExamMode) {
-                            // Recover practice mode selected answers for previous question if stored
-                            const prevQ = list[currentQuestionIndex - 1];
-                            const prevAns = quizAnswers[prevQ.id] || null;
-                            setSelectedPracticeAnswer(prevAns);
-                            setIsPracticeAnswerChecked(!!prevAns);
-                          }
-                        }}
-                        className="px-3.5 py-1.5 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded text-xs font-bold cursor-pointer"
+                        onClick={() => setShowFeedbackModal(true)}
+                        className="px-3 py-1.5 border border-brand-borderred/30 hover:bg-brand-lightred/20 text-brand-red rounded text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                       >
-                        上一题
+                        <HelpCircle className="w-3.5 h-3.5" /> 纠错反馈
                       </button>
-                    )}
+                    </div>
 
-                    {currentQuestionIndex < list.length - 1 ? (
-                      <button 
-                        onClick={() => {
-                          setCurrentQuestionIndex(prev => prev + 1);
-                          if (!isExamMode) {
-                            const nextQ = list[currentQuestionIndex + 1];
-                            const nextAns = quizAnswers[nextQ.id] || null;
-                            setSelectedPracticeAnswer(nextAns);
-                            setIsPracticeAnswerChecked(!!nextAns);
-                          }
-                        }}
-                        disabled={!isExamMode && !isPracticeAnswerChecked}
-                        className={`px-4 py-1.5 rounded text-xs font-bold cursor-pointer transition-all ${
-                          !isExamMode && !isPracticeAnswerChecked 
-                            ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed' 
-                            : 'bg-brand-red hover:bg-brand-darkred text-white shadow-xs'
-                        }`}
-                      >
-                        下一题
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => {
-                          if (activePhaseId?.startsWith('remediation_packet_')) {
-                            const pId = activePhaseId.replace('remediation_packet_', '');
-                            handleSubmitRemediationTest(pId);
-                          } else {
-                            handleSubmitQuiz();
-                          }
-                        }}
-                        disabled={!isExamMode && !isPracticeAnswerChecked}
-                        className={`px-5 py-1.5 rounded text-xs font-extrabold cursor-pointer transition-all ${
-                          !isExamMode && !isPracticeAnswerChecked 
-                            ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed' 
-                            : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
-                        }`}
-                      >
-                        {isExamMode ? '交卷并生成诊断报告' : '完成该阶段日常练习'}
-                      </button>
-                    )}
+                    <div className="flex gap-2">
+                      {currentQuestionIndex > 0 && (
+                        <button 
+                          onClick={() => {
+                            setCurrentQuestionIndex(prev => prev - 1);
+                            if (!isExamMode) {
+                              // Recover practice mode selected answers for previous question if stored
+                              const prevQ = list[currentQuestionIndex - 1];
+                              const prevAns = quizAnswers[prevQ.id] || null;
+                              setSelectedPracticeAnswer(prevAns);
+                              setIsPracticeAnswerChecked(!!prevAns);
+                            }
+                          }}
+                          className="px-3.5 py-1.5 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded text-xs font-bold cursor-pointer"
+                        >
+                          上一题
+                        </button>
+                      )}
+
+                      {currentQuestionIndex < list.length - 1 ? (
+                        <button 
+                          onClick={() => {
+                            setCurrentQuestionIndex(prev => prev + 1);
+                            if (!isExamMode) {
+                              const nextQ = list[currentQuestionIndex + 1];
+                              const nextAns = quizAnswers[nextQ.id] || null;
+                              setSelectedPracticeAnswer(nextAns);
+                              setIsPracticeAnswerChecked(!!nextAns);
+                            }
+                          }}
+                          disabled={!isExamMode && !isPracticeAnswerChecked}
+                          className={`px-4 py-1.5 rounded text-xs font-bold cursor-pointer transition-all ${
+                            !isExamMode && !isPracticeAnswerChecked 
+                              ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed' 
+                              : 'bg-brand-red hover:bg-brand-darkred text-white shadow-xs'
+                          }`}
+                        >
+                          下一题
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            if (activePhaseId?.startsWith('remediation_packet_')) {
+                              const pId = activePhaseId.replace('remediation_packet_', '');
+                              handleSubmitRemediationTest(pId);
+                            } else {
+                              handleSubmitQuiz();
+                            }
+                          }}
+                          disabled={!isExamMode && !isPracticeAnswerChecked}
+                          className={`px-5 py-1.5 rounded text-xs font-extrabold cursor-pointer transition-all ${
+                            !isExamMode && !isPracticeAnswerChecked 
+                              ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed' 
+                              : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+                          }`}
+                        >
+                          {isExamMode ? '交卷并生成诊断报告' : '完成该阶段日常练习'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
+
+                {/* Right Column: Answer Card */}
+                <div className="xl:col-span-3 space-y-4">
+                  <div className="bg-white border border-brand-borderred/30 rounded-xl p-4.5 space-y-4 shadow-xs">
+                    <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                        <FileText className="w-4 h-4 text-brand-red" />
+                        医学统考答题卡
+                      </h4>
+                      <span className="text-[10px] text-gray-400 font-bold">共 {list.length} 题</span>
+                    </div>
+
+                    {/* Status Legend */}
+                    <div className="flex flex-wrap gap-2 text-[10px] text-gray-500 font-medium border-b border-gray-50 pb-2.5">
+                      <div className="flex items-center gap-1">
+                        <span className="w-2.5 h-2.5 rounded bg-emerald-500 border border-emerald-600 block" />
+                        <span>已答</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="w-2.5 h-2.5 rounded bg-white border border-gray-300 block" />
+                        <span>未答</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="w-2.5 h-2.5 rounded bg-amber-400 border border-amber-500 block" />
+                        <span>不确定</span>
+                      </div>
+                    </div>
+
+                    {/* Question Indices Grid */}
+                    <div className="grid grid-cols-4 gap-2 pt-1">
+                      {list.map((q, idx) => {
+                        const qAns = quizAnswers[q.id];
+                        const hasAnswered = !!qAns;
+                        const isMarkedUncertain = !!uncertainQuestions[q.id];
+                        const isCurrent = idx === currentQuestionIndex;
+
+                        let cardStyle = 'border-gray-200 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300';
+                        
+                        if (isMarkedUncertain) {
+                          cardStyle = 'bg-amber-100 border-amber-400 text-amber-800 font-bold';
+                        } else if (hasAnswered) {
+                          cardStyle = 'bg-emerald-50 border-emerald-500 text-emerald-800 font-bold';
+                        }
+
+                        if (isCurrent) {
+                          cardStyle += ' ring-2 ring-brand-red ring-offset-1';
+                        }
+
+                        return (
+                          <button
+                            key={q.id}
+                            onClick={() => {
+                              setCurrentQuestionIndex(idx);
+                              if (!isExamMode) {
+                                const ans = quizAnswers[q.id] || null;
+                                setSelectedPracticeAnswer(ans);
+                                setIsPracticeAnswerChecked(!!ans);
+                              }
+                            }}
+                            className={`h-9 flex flex-col items-center justify-center text-xs border rounded-lg font-mono transition-all relative cursor-pointer ${cardStyle}`}
+                          >
+                            <span>{idx + 1}</span>
+                            {isMarkedUncertain && (
+                              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-500 border border-white" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Mode Hint Block */}
+                    <div className="p-3 bg-gray-50 border border-gray-100 rounded-lg text-[10px] text-gray-500 leading-relaxed font-medium">
+                      {isExamMode ? (
+                        <p>⚠️ <strong>测验模式：</strong>作答时无法查看即时对错与解析。交卷后生成多维度阶段诊断报告。</p>
+                      ) : (
+                        <p>💡 <strong>日常练习模式：</strong>作答并点击选项后，会即时批改并展示考点解析与错因归类选项。</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
               </div>
             );
           })()}
@@ -1220,34 +1391,141 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
           </div>
 
           {/* Historical Errors List with Detailed Remedial Material Tabs */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-black text-brand-darkred flex items-center gap-1.5">
-              <BookOpen className="w-4 h-4 text-brand-red" />
-              历史大纲错题与多维复习仓 ({questions.slice(1, 4).length}条错题)
-            </h4>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-2">
+              <h4 className="text-xs font-black text-brand-darkred flex items-center gap-1.5">
+                <BookOpen className="w-4 h-4 text-brand-red" />
+                历史大纲错题与多维复习仓 ({questions.slice(1, 6).length}条教研错题记录)
+              </h4>
+              
+              {/* Reset Filters button */}
+              {(errorSubjectFilter !== 'all' || errorDifficultyFilter !== 'all' || errorSearchQuery !== '') && (
+                <button 
+                  onClick={() => {
+                    setErrorSubjectFilter('all');
+                    setErrorDifficultyFilter('all');
+                    setErrorSearchQuery('');
+                  }}
+                  className="text-3xs text-brand-red font-bold hover:underline cursor-pointer"
+                >
+                  ✕ 清除所有筛选
+                </button>
+              )}
+            </div>
+
+            {/* Advanced Filters Panel */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-lg border border-gray-200 shadow-3xs text-xs">
+              <div>
+                <label className="block text-3xs font-extrabold text-gray-400 uppercase mb-1">按医学科目筛选</label>
+                <select
+                  value={errorSubjectFilter}
+                  onChange={(e) => setErrorSubjectFilter(e.target.value)}
+                  className="w-full text-2xs bg-gray-50 border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-red font-medium text-gray-700"
+                >
+                  <option value="all">🔍 全部科目</option>
+                  <option value="病理学">病理学基础</option>
+                  <option value="病理解剖学">病理解剖学</option>
+                  <option value="生理学">生理学基础</option>
+                  <option value="内科学">内科学诊疗</option>
+                  <option value="药理学">临床药理学</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-3xs font-extrabold text-gray-400 uppercase mb-1">按难度系数筛选</label>
+                <select
+                  value={errorDifficultyFilter}
+                  onChange={(e) => setErrorDifficultyFilter(e.target.value)}
+                  className="w-full text-2xs bg-gray-50 border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-red font-medium text-gray-700"
+                >
+                  <option value="all">⚡️ 全部难度</option>
+                  <option value="易">易 (基础概念)</option>
+                  <option value="中">中 (临床综合)</option>
+                  <option value="难">难 (重症疑难)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-3xs font-extrabold text-gray-400 uppercase mb-1">模糊搜索考点/题干</label>
+                <input
+                  type="text"
+                  placeholder="输入题干关键字、核心考点..."
+                  value={errorSearchQuery}
+                  onChange={(e) => setErrorSearchQuery(e.target.value)}
+                  className="w-full text-2xs bg-gray-50 border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-red font-medium text-gray-700"
+                />
+              </div>
+            </div>
             
             <div className="border border-brand-borderred/30 rounded-lg bg-white overflow-hidden shadow-xs">
               <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-100 min-h-[320px]">
-                {/* Left Side: Mistake list */}
-                <div className="col-span-1 bg-gray-50/50 p-3 space-y-2.5 max-h-[380px] overflow-y-auto">
-                  <div className="text-3xs font-extrabold text-brand-darkred uppercase px-1 pb-1 border-b border-gray-100">错题卡片</div>
-                  {questions.slice(1, 4).map((q, idx) => (
-                    <div 
-                      key={q.id}
-                      onClick={() => { setSelectedErrorId(q.id); setRemediationTab('解析'); }}
-                      className={`p-3 rounded border text-xs cursor-pointer transition-all ${
-                        selectedErrorId === q.id 
-                          ? 'border-brand-red bg-brand-lightred text-brand-darkred font-bold shadow-2xs' 
-                          : 'border-gray-200 hover:border-brand-borderred hover:bg-white bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between text-3xs text-gray-400 mb-1.5">
-                        <span className="font-semibold text-brand-red">{q.category}</span>
-                        <span className="text-red-600 bg-red-50 border border-red-100 px-1 py-0.2 rounded font-extrabold">累计错 1 次</span>
-                      </div>
-                      <p className="text-gray-800 line-clamp-2 leading-relaxed font-medium">{q.stem}</p>
-                    </div>
-                  ))}
+                
+                {/* Left Side: Mistake list with active filters */}
+                <div className="col-span-1 bg-gray-50/50 p-3 space-y-2.5 max-h-[420px] overflow-y-auto">
+                  <div className="text-3xs font-extrabold text-brand-darkred uppercase px-1 pb-1 border-b border-gray-100 flex items-center justify-between">
+                    <span>错题卡片</span>
+                    <span className="text-gray-400 font-bold">已过滤 {
+                      (() => {
+                        const baseMistakes = questions.slice(1, 6);
+                        const filtered = baseMistakes.filter(q => {
+                          if (errorSubjectFilter !== 'all' && q.category !== errorSubjectFilter) return false;
+                          if (errorDifficultyFilter !== 'all' && q.difficulty !== errorDifficultyFilter) return false;
+                          if (errorSearchQuery.trim()) {
+                            const qLower = errorSearchQuery.toLowerCase();
+                            const matchStem = q.stem.toLowerCase().includes(qLower);
+                            const matchKP = q.knowledgePoint.toLowerCase().includes(qLower);
+                            if (!matchStem && !matchKP) return false;
+                          }
+                          return true;
+                        });
+                        return filtered.length;
+                      })()
+                    } / {questions.slice(1, 6).length} 题</span>
+                  </div>
+                  
+                  {(() => {
+                    const baseMistakes = questions.slice(1, 6);
+                    const filtered = baseMistakes.filter(q => {
+                      if (errorSubjectFilter !== 'all' && q.category !== errorSubjectFilter) return false;
+                      if (errorDifficultyFilter !== 'all' && q.difficulty !== errorDifficultyFilter) return false;
+                      if (errorSearchQuery.trim()) {
+                        const qLower = errorSearchQuery.toLowerCase();
+                        const matchStem = q.stem.toLowerCase().includes(qLower);
+                        const matchKP = q.knowledgePoint.toLowerCase().includes(qLower);
+                        if (!matchStem && !matchKP) return false;
+                      }
+                      return true;
+                    });
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="p-6 text-center text-gray-400 text-3xs font-medium">
+                          没有匹配当前筛选条件的错题。
+                        </div>
+                      );
+                    }
+
+                    return filtered.map((q, idx) => {
+                      const isSelected = selectedErrorId === q.id || (!selectedErrorId && idx === 0);
+                      return (
+                        <div 
+                          key={q.id}
+                          onClick={() => { setSelectedErrorId(q.id); setRemediationTab('解析'); }}
+                          className={`p-3 rounded border text-xs cursor-pointer transition-all ${
+                            isSelected 
+                              ? 'border-brand-red bg-brand-lightred text-brand-darkred font-bold shadow-2xs' 
+                              : 'border-gray-200 hover:border-brand-borderred hover:bg-white bg-white'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-3xs text-gray-400 mb-1.5">
+                            <span className="font-semibold text-brand-red">{q.category} · {q.difficulty}</span>
+                            <span className="text-red-600 bg-red-50 border border-red-100 px-1 py-0.2 rounded font-extrabold">累计错 {idx === 0 ? '2' : '1'} 次</span>
+                          </div>
+                          <p className="text-gray-800 line-clamp-2 leading-relaxed font-medium">{q.stem}</p>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
 
                 {/* Right Side: Remediation Panel tabs */}
@@ -1346,6 +1624,43 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                             </div>
                           </div>
                         )}
+
+                        {/* Interactive actions block */}
+                        <div className="border-t border-gray-100 pt-4 flex flex-wrap items-center justify-between gap-3 bg-gray-50/50 p-3 rounded-lg border border-gray-100 mt-2">
+                          <span className="text-3xs text-gray-400 font-semibold">诊断学情：此考点属于【高频核心考点】，建议尽快安排复测！</span>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                showToast(`🎯 已调取匹配考点【${selectedQ.knowledgePoint}】的相似统考原题，特训加载中...`, 'success');
+                              }}
+                              className="px-3 py-1.5 bg-brand-lightred hover:bg-brand-lightred/80 border border-brand-borderred/20 text-brand-red text-3xs font-extrabold rounded cursor-pointer transition-colors"
+                            >
+                              做相似题
+                            </button>
+                            <button
+                              onClick={() => {
+                                showToast(`⚡ 已向该考点派发【针对性大纲加练强化卷】。`, 'success');
+                              }}
+                              className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-brand-gold/30 text-brand-gold text-3xs font-extrabold rounded cursor-pointer transition-colors"
+                            >
+                              专项加练
+                            </button>
+                            <button
+                              onClick={() => {
+                                showToast(`📋 正在进入教研测验模式，限时闭卷考查：${selectedQ.knowledgePoint}`, 'success');
+                                setIsExamMode(true);
+                                setQuizAnswers({});
+                                setSelectedPracticeAnswer(null);
+                                setIsPracticeAnswerChecked(false);
+                                setView('S3');
+                              }}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-3xs font-extrabold rounded cursor-pointer transition-all shadow-3xs"
+                            >
+                              立即复测
+                            </button>
+                          </div>
+                        </div>
+
                       </div>
                     );
                   })()}
@@ -1474,6 +1789,130 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  {/* AI 补盲包一键跳转提示栏 */}
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-brand-gold/40 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-3xs">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-brand-gold/10 rounded-full border border-brand-gold/20">
+                        <Sparkles className="w-5 h-5 text-brand-gold fill-brand-gold" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <h4 className="text-xs font-bold text-brand-darkred">教研同步：AI 已为你智能生成了 1 个考点深度补盲包！</h4>
+                        <p className="text-3xs text-gray-500 font-medium">针对薄弱点【药理学 - 糖皮质激素抗炎机制】。内含 8分钟名师微课视频 及 5道相似仿真巩固题。</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setSelectedErrorId('q4'); 
+                        setView('S4');
+                        showToast('已为你一键跳转到关联补盲包，快来开始微课攻克吧！', 'success');
+                      }}
+                      className="px-4 py-1.5 bg-brand-red hover:bg-brand-darkred text-white text-xs font-black rounded cursor-pointer transition-all shrink-0 shadow-2xs"
+                    >
+                      一键跳转到补盲包
+                    </button>
+                  </div>
+
+                  {/* 分数段对比 & 错因归类占比 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* 分数段对比 */}
+                    <div className="bg-white border border-brand-borderred/30 rounded-lg p-4 space-y-3.5 shadow-2xs">
+                      <h4 className="text-xs font-black text-brand-darkred border-b border-gray-100 pb-2 flex items-center gap-1.5">
+                        <BarChart2 className="w-4 h-4 text-brand-red" />
+                        本班同学统考分数段对比
+                      </h4>
+                      <div className="space-y-2.5 pt-1 text-3xs text-gray-500 font-bold">
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span>优秀 (90分 - 100分)</span>
+                            <span className="text-gray-700">12人 · 24%</span>
+                          </div>
+                          <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                            <div className="bg-emerald-500 h-full rounded-full" style={{ width: '24%' }} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span>良好 (80分 - 89分) -- 你的位置</span>
+                            <span className="text-brand-red">28人 · 56%</span>
+                          </div>
+                          <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                            <div className="bg-brand-red h-full rounded-full" style={{ width: '56%' }} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span>及格 (60分 - 79分)</span>
+                            <span className="text-gray-700">8.5人 · 17%</span>
+                          </div>
+                          <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                            <div className="bg-amber-400 h-full rounded-full" style={{ width: '17%' }} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span>不及格 (60分以下)</span>
+                            <span className="text-gray-700">1.5人 · 3%</span>
+                          </div>
+                          <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                            <div className="bg-gray-300 h-full rounded-full" style={{ width: '3%' }} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 错因归类占比 */}
+                    <div className="bg-white border border-brand-borderred/30 rounded-lg p-4 space-y-3.5 shadow-2xs">
+                      <h4 className="text-xs font-black text-brand-darkred border-b border-gray-100 pb-2 flex items-center gap-1.5">
+                        <PieChart className="w-4 h-4 text-brand-gold" />
+                        你的错因归类全景画像 (根据作答归纳)
+                      </h4>
+                      <div className="space-y-2.5 pt-1 text-3xs text-gray-500 font-bold">
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span>审题不细 (病史条件遗漏或题眼错判)</span>
+                            <span className="text-brand-red font-black">40%占比</span>
+                          </div>
+                          <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                            <div className="bg-brand-red h-full rounded-full" style={{ width: '40%' }} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span>概念模糊 (病理生理机制概念混淆)</span>
+                            <span className="text-brand-gold font-black">30%占比</span>
+                          </div>
+                          <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                            <div className="bg-brand-gold h-full rounded-full" style={{ width: '30%' }} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span>解题粗心 (标准答案误点/极低级错误)</span>
+                            <span className="text-gray-700">20%占比</span>
+                          </div>
+                          <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                            <div className="bg-amber-400 h-full rounded-full" style={{ width: '20%' }} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span>知识遗忘 (未复习到此知识板块)</span>
+                            <span className="text-gray-700">10%占比</span>
+                          </div>
+                          <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                            <div className="bg-gray-400 h-full rounded-full" style={{ width: '10%' }} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Simulated Chart Metrics */}
