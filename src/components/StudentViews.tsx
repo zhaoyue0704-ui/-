@@ -136,7 +136,7 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
       stage,
       examGoal
     }));
-    showToast(`统考大纲及自测题库已精准切换至 “${stage}” 对应考纲！`, 'info');
+    showToast(`已切换至 “${stage}” 对应考纲`, 'info');
   };
 
   // Get active test questions for Phase
@@ -295,7 +295,7 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
     onAddFeedback(q.id, q.stem, feedbackType, feedbackContent);
     setFeedbackContent('');
     setShowFeedbackModal(false);
-    showToast('📣 纠错反馈提交成功！该题已精准归档并推送至教务后台核实。', 'success');
+    showToast('反馈已提交', 'success');
   };
 
   const isPhaseQuiz = () => {
@@ -374,15 +374,15 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
               
               {/* State-driven Enrollment Banner */}
               {myPlansList.length === 0 ? (
-                <div className="bg-amber-50 border-l-4 border-brand-gold p-5 rounded-r-lg text-xs space-y-2 shadow-xs border-y border-r border-brand-gold/10">
-                  <h4 className="font-extrabold text-[#805300] flex items-center gap-1.5 text-sm">
-                    <AlertCircle className="w-5 h-5 text-brand-gold shrink-0 fill-brand-gold/10" />
-                    学情预警：您尚未加入任何统考医学大纲计划
+                <div className="bg-amber-50 border-l-4 border-brand-gold p-4 rounded-r-lg text-xs space-y-2 shadow-xs border-y border-r border-brand-gold/10">
+                  <h4 className="font-bold text-amber-800 flex items-center gap-1.5 text-xs">
+                    <AlertCircle className="w-4 h-4 text-brand-gold shrink-0" />
+                    未加入学习计划
                   </h4>
-                  <p className="text-gray-600 leading-relaxed font-medium">
-                    当前您的账号处于【未加入计划】状态。大纲精准匹配系统已在右侧为您筛选出最匹配的备考路径。加入后可即时解锁日常练习、临床模拟测验、以及 AI 错题智能补盲包，帮助您高效达标！
+                  <p className="text-gray-600 leading-relaxed">
+                    当前处于未加入计划状态。请在右侧选择大纲计划激活并加入，以解锁练习和错题自测。
                   </p>
-                  <div className="pt-1.5 flex gap-2">
+                  <div className="pt-1">
                     <button 
                       onClick={() => {
                         const firstRec = studentPlans[0];
@@ -392,20 +392,20 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                           showToast('暂无推荐计划，请联系管理员配置大纲。', 'warning');
                         }
                       }}
-                      className="px-3.5 py-1.5 bg-brand-gold hover:bg-amber-600 text-[#3b0000] text-3xs font-black rounded-md shadow-xs transition-colors cursor-pointer"
+                      className="px-3 py-1 bg-brand-gold hover:bg-amber-600 text-[#3b0000] text-3xs font-bold rounded shadow-xs transition-colors cursor-pointer"
                     >
-                      💡 一键激活推荐计划
+                      激活推荐大纲计划
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="bg-emerald-50 border-l-4 border-emerald-500 p-5 rounded-r-lg text-xs space-y-2 shadow-xs border-y border-r border-emerald-500/10">
-                  <h4 className="font-extrabold text-emerald-800 flex items-center gap-1.5 text-sm">
-                    <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
-                    学情跟踪：您已顺利加入医学考纲实训
+                <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-lg text-xs space-y-1 shadow-xs border-y border-r border-emerald-500/10">
+                  <h4 className="font-bold text-emerald-800 flex items-center gap-1.5 text-xs">
+                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                    已加入 {myPlansList.length} 个学习计划，当前有 {remediationPackets.filter(p => p.status !== 'retested').length || 1} 个补盲任务待完成
                   </h4>
-                  <p className="text-gray-600 leading-relaxed font-medium">
-                    当前您的账号处于【已加入计划】状态。您已激活 <strong>{myPlansList.length}</strong> 项复习大纲，系统正在实时记录您的答题轨迹。AI 定向错题补盲包已根据您在临床练习中的薄弱点同步生成，请确保及时完成复测。
+                  <p className="text-gray-600 leading-relaxed">
+                    已激活复习大纲，日常练习与错题消盲任务已同步生成。
                   </p>
                 </div>
               )}
@@ -414,31 +414,31 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div 
                   onClick={() => setView('S6')}
-                  className="bg-white border border-gray-200 p-5 rounded-xl cursor-pointer hover:border-brand-borderred hover:shadow-md transition-all relative overflow-hidden group shadow-xs"
+                  className="bg-white border border-gray-200 p-4.5 rounded-xl cursor-pointer hover:border-brand-borderred hover:shadow-md transition-all relative overflow-hidden group shadow-xs"
                 >
                   <div className="absolute top-0 left-0 w-1 h-full bg-brand-red group-hover:w-1.5 transition-all" />
-                  <div className="flex items-center justify-between mb-2 pl-1">
+                  <div className="flex items-center justify-between mb-1 pl-1">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">我的复习计划</span>
-                    <BookOpen className="w-4.5 h-4.5 text-brand-red" />
+                    <BookOpen className="w-4 h-4 text-brand-red" />
                   </div>
-                  <div className="text-2xl font-black text-brand-red pl-1">{myPlansList.length} <span className="text-xs font-semibold text-gray-400">个已加入</span></div>
-                  <p className="text-3xs text-gray-400 mt-2 pl-1 flex items-center gap-1">点击查看大纲阶段详情 <ChevronRight className="w-3 h-3 text-brand-red" /></p>
+                  <div className="text-xl font-black text-brand-red pl-1">{myPlansList.length} <span className="text-xs font-semibold text-gray-400">个已加入</span></div>
+                  <p className="text-3xs text-gray-400 mt-1 pl-1 flex items-center gap-1">点击查看大纲阶段详情 <ChevronRight className="w-3 h-3 text-brand-red" /></p>
                 </div>
 
                 <div 
                   onClick={() => setView('S4')}
-                  className="bg-white border border-gray-200 p-5 rounded-xl cursor-pointer hover:border-brand-gold hover:shadow-md transition-all relative overflow-hidden group shadow-xs"
+                  className="bg-white border border-gray-200 p-4.5 rounded-xl cursor-pointer hover:border-brand-gold hover:shadow-md transition-all relative overflow-hidden group shadow-xs"
                 >
                   <div className="absolute top-0 left-0 w-1 h-full bg-brand-gold group-hover:w-1.5 transition-all" />
-                  <div className="flex items-center justify-between mb-2 pl-1">
+                  <div className="flex items-center justify-between mb-1 pl-1">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">今日错题与补盲</span>
-                    <AlertCircle className="w-4.5 h-4.5 text-brand-gold" />
+                    <AlertCircle className="w-4 h-4 text-brand-gold" />
                   </div>
-                  <div className="text-2xl font-black text-brand-gold pl-1">
+                  <div className="text-xl font-black text-brand-gold pl-1">
                     {remediationPackets.length > 0 ? remediationPackets.reduce((acc, p) => acc + p.weakPoints.length, 0) : 1}
                     <span className="text-xs font-semibold text-gray-400"> 个待补盲</span>
                   </div>
-                  <p className="text-3xs text-gray-400 mt-2 pl-1 flex items-center gap-1">AI 相似题加练包已生成 <ChevronRight className="w-3 h-3 text-brand-gold" /></p>
+                  <p className="text-3xs text-gray-400 mt-1 pl-1 flex items-center gap-1">仿真加练包已生成 <ChevronRight className="w-3 h-3 text-brand-gold" /></p>
                 </div>
 
                 <div 
@@ -450,17 +450,49 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
                       showToast('暂无测验报告，请先加入计划并完成首次自测练习！', 'warning');
                     }
                   }}
-                  className="bg-white border border-gray-200 p-5 rounded-xl cursor-pointer hover:border-emerald-500 hover:shadow-md transition-all relative overflow-hidden group shadow-xs"
+                  className="bg-white border border-gray-200 p-4.5 rounded-xl cursor-pointer hover:border-emerald-500 hover:shadow-md transition-all relative overflow-hidden group shadow-xs"
                 >
                   <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500 group-hover:w-1.5 transition-all" />
-                  <div className="flex items-center justify-between mb-2 pl-1">
+                  <div className="flex items-center justify-between mb-1 pl-1">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">最近测验报告</span>
-                    <Award className="w-4.5 h-4.5 text-emerald-500" />
+                    <Award className="w-4 h-4 text-emerald-500" />
                   </div>
-                  <div className="text-2xl font-black text-emerald-600 pl-1">
+                  <div className="text-xl font-black text-emerald-600 pl-1">
                     {testAttempts.length > 0 ? `${testAttempts[0].score}分` : '暂无'}
                   </div>
-                  <p className="text-3xs text-gray-400 mt-2 pl-1 flex items-center gap-1">分析正确率与考点趋势 <ChevronRight className="w-3 h-3 text-emerald-500" /></p>
+                  <p className="text-3xs text-gray-400 mt-1 pl-1 flex items-center gap-1">分析正确率与考点趋势 <ChevronRight className="w-3 h-3 text-emerald-500" /></p>
+                </div>
+              </div>
+
+              {/* 学习目录 / 快捷入口 */}
+              <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs space-y-3">
+                <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <BookOpen className="w-4.5 h-4.5 text-brand-red" />
+                    学习目录 / 快捷入口
+                  </h4>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                  {[
+                    { label: '我的计划', desc: '大纲阶段进度', viewId: 'S6', color: 'bg-rose-50 hover:bg-rose-100/60 border-rose-100 text-rose-800' },
+                    { label: '继续学习', desc: '当前章节详情', viewId: 'S2', color: 'bg-amber-50 hover:bg-amber-100/60 border-amber-100 text-amber-800' },
+                    { label: '日常练习', desc: '章节习题自测', action: () => handleStartPhase('plan_01', 'p1'), color: 'bg-sky-50 hover:bg-sky-100/60 border-sky-100 text-sky-800' },
+                    { label: '模拟测验', desc: '阶段真题考试', action: () => handleStartPhase('plan_01', 'p2'), color: 'bg-indigo-50 hover:bg-indigo-100/60 border-indigo-100 text-indigo-800' },
+                    { label: '错题补盲', desc: '薄弱点强化课', viewId: 'S4', color: 'bg-orange-50 hover:bg-orange-100/60 border-orange-100 text-orange-800' },
+                    { label: '学习报告', desc: '诊断及雷达图', viewId: 'S5', color: 'bg-emerald-50 hover:bg-emerald-100/60 border-emerald-100 text-emerald-800' },
+                  ].map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        if (item.action) item.action();
+                        else if (item.viewId) setView(item.viewId);
+                      }}
+                      className={`p-3 border rounded-lg text-left transition-all cursor-pointer flex flex-col justify-between h-20 ${item.color}`}
+                    >
+                      <span className="text-2xs font-bold block">{item.label}</span>
+                      <span className="text-[10px] text-gray-400 mt-1 line-clamp-1">{item.desc}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -468,17 +500,17 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
               <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                   <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-4.5 h-4.5 text-brand-gold fill-brand-gold" />
+                    <Sparkles className="w-4 h-4 text-brand-gold fill-brand-gold" />
                     今日备考任务大盘（教研标准对齐）
                   </h4>
-                  <span className="text-3xs text-gray-400 font-bold">每日 24:00 自动更新大纲</span>
+                  <span className="text-3xs text-gray-400 font-bold">每日 24:00 自动更新</span>
                 </div>
                 
                 {myPlansList.length === 0 ? (
                   <div className="text-center py-6 space-y-2">
                     <p className="text-xs text-brand-darkred font-bold">您当前暂无进行中的备考大纲</p>
                     <p className="text-2xs text-gray-400 leading-relaxed max-w-md mx-auto">
-                      未激活计划前无法开启阶段测试与 AI 错题智能补盲加练。请从右侧【可加入大纲计划】中选择适合您的医学统考大纲并点击加入。
+                      未激活大纲前无法开启测试与自测练习。请从右侧【可加入大纲计划】中选择适合您的医学统考大纲并点击加入。
                     </p>
                   </div>
                 ) : (
@@ -696,26 +728,26 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
           {!student.joinedPlanIds.includes(activePlan.id) && (
             <div className="bg-amber-50 border-l-4 border-brand-gold p-4.5 rounded-r-lg text-2xs space-y-2 shadow-2xs border-y border-r border-brand-gold/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="space-y-0.5">
-                <h4 className="font-black text-[#805300] flex items-center gap-1.5">
-                  <AlertCircle className="w-4.5 h-4.5 text-brand-gold shrink-0 fill-brand-gold/10" />
-                  【教务提示：您尚未激活加入本考试大纲学习计划】
+                <h4 className="font-bold text-[#805300] flex items-center gap-1.5 text-xs">
+                  <AlertCircle className="w-4 h-4 text-brand-gold shrink-0" />
+                  尚未加入本考试大纲
                 </h4>
-                <p className="text-gray-500 font-semibold leading-relaxed">
-                  加入后系统将为您即时开启大纲通关进度、解锁日常练习和模拟测验、以及 AI 错题智能补盲包。
+                <p className="text-gray-500 font-medium leading-relaxed">
+                  加入大纲后可记录学习进度，并解锁日常练习、模拟测验和错题自测。
                 </p>
               </div>
               <button
                 onClick={() => handleJoinPlan(activePlan.id)}
-                className="px-4 py-2 bg-brand-red hover:bg-[#590000] text-white rounded text-2xs font-black shadow-md flex items-center gap-1 cursor-pointer transition-colors shrink-0"
+                className="px-4 py-2 bg-brand-red hover:bg-[#590000] text-white rounded text-2xs font-bold shadow-md flex items-center gap-1 cursor-pointer transition-colors shrink-0"
               >
-                <Sparkles className="w-3.5 h-3.5 text-brand-gold fill-brand-gold" /> 立即激活加入
+                立即加入计划
               </button>
             </div>
           )}
 
           {/* Remediation rule prompt */}
           <div className="p-4 bg-brand-lightred/40 border border-brand-borderred/40 rounded-lg text-2xs text-brand-darkred space-y-1">
-            <p className="font-bold flex items-center gap-1"><Sparkles className="w-3.5 h-3.5 text-brand-gold fill-brand-gold" /> 教务智能补盲与过关标准：</p>
+            <p className="font-bold flex items-center gap-1"><Award className="w-3.5 h-3.5 text-brand-red" /> 考纲要求与通关标准：</p>
             <p className="text-brand-darkred/90 leading-relaxed font-medium">{activePlan.remediationRules}</p>
           </div>
 
@@ -1241,9 +1273,9 @@ export const StudentViews: React.FC<StudentViewsProps> = ({
       {currentView === 'S4' && (
         <div className="space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-            <h2 className="text-sm font-black text-brand-darkred flex items-center gap-1.5">
-              <Sparkles className="w-4.5 h-4.5 text-brand-gold fill-brand-gold animate-bounce" />
-              错题分析与智能个性化补盲中心
+            <h2 className="text-sm font-bold text-brand-darkred flex items-center gap-1.5">
+              <AlertCircle className="w-4 h-4 text-brand-gold shrink-0" />
+              错题专项加练与考点强化
             </h2>
             <button 
               onClick={() => setView('S1')}

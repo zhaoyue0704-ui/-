@@ -55,6 +55,13 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
   setFeedbacks,
   questions
 }) => {
+  // Local toast notifications
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'warning' | 'info' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'warning' | 'info' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   // A2 (Student Manager) Local State
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [newStudentName, setNewStudentName] = useState('');
@@ -138,13 +145,13 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
     setClassProgress(prev => [...prev, newProgress]);
     setNewStudentName('');
     setShowAddStudentModal(false);
-    alert('学生导入并成功分配“执业医师通关计划”！');
+    showToast('已导入试点学生');
   };
 
   // A4 Wizard Handlers
   const handleNextStep = () => {
     if (creationStep === 1 && !newPlanName.trim()) {
-      alert('请先输入计划名称！');
+      showToast('请输入计划名称', 'warning');
       return;
     }
     setCreationStep(prev => prev + 1);
@@ -172,7 +179,7 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
     };
 
     setPlans(prev => [...prev, newPlanObj]);
-    alert(`新医学学习计划 《${newPlanName}》 已审核成功并全网发布！`);
+    showToast('已发布');
     
     // Reset wizard
     setCreationStep(1);
@@ -196,18 +203,18 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
     };
 
     setPlans(prev => [...prev, dup]);
-    alert(`计划《${orig.name}》已成功复制，支持后续灵活微调。`);
+    showToast('已复制');
   };
 
   // A6 Handler: Send Notification Reminder (Toast Mock)
   const handleSendReminder = (studentName: string) => {
-    alert(`【系统广播】已向学生“${studentName}”推送一条提醒微信消息与站内信，提示其尽快开始错题加练。`);
+    showToast('已提醒学生');
   };
 
   // A6 Handler: Audit feedback submit
   const handleResolveFeedback = (fbId: string) => {
     if (!feedbackReplyContent.trim()) {
-      alert('请写明核实并采纳的处理意见说明！');
+      showToast('请填写核实处理意见', 'warning');
       return;
     }
 
@@ -225,27 +232,30 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
 
     setFeedbackReplyContent('');
     setActiveFeedbackId(null);
-    alert('题目反馈已采纳核实并成功发布公告解析！');
+    showToast('已采纳并更新解析');
   };
 
   return (
-    <div className="p-4 max-w-5xl mx-auto space-y-6 text-gray-800">
+    <div className="p-4 w-full space-y-6 text-gray-800">
       
-      {/* 1. Global Admin Top Menu */}
-      <div className="bg-[#8C0000] border-b-4 border-brand-gold text-white rounded-lg p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-md relative overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 opacity-5 pointer-events-none text-9xl font-serif select-none text-white">
-          教
+      {/* Toast popup */}
+      {toast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] bg-[#1e0000] border-2 border-brand-gold text-white px-5 py-3 rounded-lg shadow-xl flex items-center gap-2 text-xs font-black animate-pulse max-w-md text-center">
+          <span>{toast.message}</span>
         </div>
-        
+      )}
+
+      {/* 1. Global Admin Header */}
+      <div className="bg-[#8C0000] border-b-4 border-brand-gold text-white rounded-lg p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm relative overflow-hidden">
         <div className="z-10">
-          <h2 className="font-black text-sm flex items-center gap-2">
-            🏫 北京大学医学教务端智能管控总台
-            <span className="text-3xs bg-[#3b0000] text-brand-gold border border-brand-gold/30 px-2 py-0.5 rounded font-extrabold uppercase tracking-wider">
-              总教务管理员: zhaoyue
+          <h2 className="font-bold text-sm flex items-center gap-2">
+            医学教务考纲管控总台
+            <span className="text-[10px] bg-[#3b0000] text-brand-gold border border-brand-gold/20 px-2 py-0.5 rounded font-extrabold uppercase">
+              管理员: zhaoyue
             </span>
           </h2>
-          <p className="text-3xs text-brand-lightred mt-1 font-bold">
-            管理考试大纲、定制医学题库匹配规则、一键分拨错题补盲加练路径，闭环评估各班医学统考学情
+          <p className="text-[11px] text-brand-lightred mt-1 font-medium">
+            维护统考标准大纲，监督各试点班级习题练习进度与薄弱点消盲反馈。
           </p>
         </div>
 
@@ -256,42 +266,44 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
           >
             <Plus className="w-3.5 h-3.5" /> 创建新计划
           </button>
-          <button 
-            onClick={() => setView('A1')}
-            className="px-3 py-1.5 bg-[#590000] hover:bg-[#3b0000] text-brand-lightred border border-brand-borderred/30 rounded text-xs font-black cursor-pointer transition-colors"
-          >
-            大屏中心
-          </button>
         </div>
-      </div>
-
-      {/* 2. Page Switch Tabs */}
-      <div className="flex border-b border-brand-borderred/20 overflow-x-auto gap-2 pb-1 scrollbar-none">
-        {[
-          { id: 'A1', label: '📊 1. 学情概览大屏' },
-          { id: 'A2', label: '👥 2. 学生名单管理' },
-          { id: 'A3', label: '📖 3. 考试大纲配置' },
-          { id: 'A4', label: '📝 4. 完美版步骤创建器' },
-          { id: 'A5', label: '⚙️ 5. 计划发布总控' },
-          { id: 'A6', label: '🔍 6. 班级学情监控(双下钻)' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setView(tab.id)}
-            className={`text-2xs font-extrabold px-3 py-2 border rounded-t-md transition-all whitespace-nowrap cursor-pointer ${
-              currentView === tab.id 
-                ? 'bg-white border-brand-borderred/30 border-b-white text-brand-red border-t-2 border-t-brand-red shadow-2xs font-black' 
-                : 'bg-brand-lightred/10 border-transparent text-brand-darkred hover:bg-brand-lightred/30'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
       </div>
 
       {/* A1 (Admin Home View) */}
       {currentView === 'A1' && (
         <div className="space-y-6 animate-fade-in">
+          {/* Management Directory / Working Entries (管理目录 / 工作入口) */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs space-y-3">
+            <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
+              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+                <Settings className="w-4 h-4 text-brand-red" />
+                管理目录 / 工作入口
+              </h4>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+              {[
+                { label: '学生管理', desc: '试点学生进度与学籍', viewId: 'A2', color: 'bg-rose-50 hover:bg-rose-100/60 border-rose-100 text-rose-800' },
+                { label: '大纲配置', desc: '统考医学大纲配置树', viewId: 'A3', color: 'bg-amber-50 hover:bg-amber-100/60 border-amber-100 text-amber-800' },
+                { label: '创建计划', desc: '新备考大纲创建步骤', viewId: 'A4', color: 'bg-sky-50 hover:bg-sky-100/60 border-sky-100 text-sky-800' },
+                { label: '计划发布', desc: '分拨与发布总控中心', viewId: 'A5', color: 'bg-indigo-50 hover:bg-indigo-100/60 border-indigo-100 text-indigo-800' },
+                { label: '学情看板', desc: '全班维度数据双下钻', viewId: 'A6', color: 'bg-orange-50 hover:bg-orange-100/60 border-orange-100 text-orange-800' },
+                { label: '反馈核实', desc: '学生题目报错教研核对', action: () => { setView('A6'); setMonitorTab('feedbacks'); }, color: 'bg-emerald-50 hover:bg-emerald-100/60 border-emerald-100 text-emerald-800' },
+              ].map((item, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    if (item.action) item.action();
+                    else if (item.viewId) setView(item.viewId);
+                  }}
+                  className={`p-3 border rounded-lg text-left transition-all cursor-pointer flex flex-col justify-between h-20 ${item.color}`}
+                >
+                  <span className="text-2xs font-bold block">{item.label}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 line-clamp-1">{item.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Key Metrics Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white border-t-4 border-brand-red border-x border-b border-brand-borderred/20 p-4.5 rounded-lg shadow-2xs">
@@ -610,11 +622,10 @@ export const AdminViews: React.FC<AdminViewsProps> = ({
       {currentView === 'A4' && (
         <div className="space-y-6 animate-fade-in">
           <div className="flex items-center gap-2 pb-2 border-b border-brand-borderred/20">
-            <h3 className="text-xs font-black text-brand-darkred flex items-center gap-1.5">
-              <Sliders className="w-4.5 h-4.5 text-brand-red" />
-              智能医学考试大纲学习计划创建器
+            <h3 className="text-xs font-bold text-brand-darkred flex items-center gap-1.5">
+              <Sliders className="w-4 h-4 text-brand-red" />
+              医学统考计划配置向导
             </h3>
-            <span className="text-3xs text-brand-gold px-2 py-0.5 bg-brand-lightred/30 rounded font-black border border-brand-borderred/10">完美版分步构建</span>
           </div>
 
           {/* Step Progress indicators */}
